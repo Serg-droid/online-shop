@@ -1,0 +1,21 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'product/style.css' %}">
+
+<ul>
+    {% for productbasket in productbasketlist %}
+    <li>
+        <div>Title: {{ productbasket.product.title }}</div>
+        <div>Count: {{ productbasket.product_count }}</div>
+        <div>Price: {{ productbasket.product.price }}</div>
+        <a href="{% url "product:add_product_to_basket" productbasket.product.id %}?next={{ request.get_full_path|urlencode }}">+</a>
+        <a href="{% url "product:remove_product_from_basket" productbasket.product.id %}?next={{ request.get_full_path|urlencode }}">-</a>
+    </li>
+    {% endfor %}
+
+    <div>
+        Total <strong>{{ basket_total_count }}</strong>
+    </div>
+
+    <a href="{% url "product:index" %}">Back to products</a>
+    <a href="{% url "product:approve_basket" %}">Approve basket</a>
+</ul>
