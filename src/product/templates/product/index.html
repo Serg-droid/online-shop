@@ -22,8 +22,13 @@
 <ul>
     {% for product in products %}
     <li>
-        <div>{{ product.title }}</div>
-        <div>{{ product.price }}</div>
+        <div> <a href="{% url "product:about_product" product.id %}">{{ product.title }}</a> </div>
+        {% if product.discount %}
+            <div style="text-decoration: line-through">{{ product.price }}</div>
+            <div>{{ product.count_price }}</div>
+        {% else %}
+            <div>{{ product.price }}</div>
+        {% endif %}
         <div>
             <a href="{% url "product:add_product_to_basket" product.id %}?next={{ request.get_full_path|urlencode }}">+</a>
         </div>

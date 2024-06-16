@@ -1,4 +1,3 @@
-# from django.db.models.signals import pre_delete
 from django.contrib.auth import user_logged_in
 from django.contrib.sessions.models import Session
 from django.db.models.signals import pre_delete

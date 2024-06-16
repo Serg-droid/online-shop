@@ -1,0 +1,18 @@
+<h2>About product: {{ product.title }}</h2>
+
+<div>
+    <div>Описание товара</div>
+    <div>Состав: <br> {{ product.ingredients }} </div>
+    <div>Производитель: <br> {{ product.manufacturer.title }}. {{ product.manufacturer.country }}</div>
+    <div>Бренд: <br> {{ product.brand.brand_name }}</div>
+    <div>
+        <div>Галерея</div>
+        <ul>
+            {% for image in product.productimage_set.all %}
+            <li>
+                <img src="{{ image.image.url }}" alt="cartinka" style="width: 200px; height: 200px">
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

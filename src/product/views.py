@@ -58,6 +58,11 @@ def basket(request):
     return render(request, "product/basket.html", {"productbasketlist": productbasketlist, "basket_total_count": basket_total_count})
 
 
+def about_product(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    return render(request, "product/about.html", { "product" : product })
+
+
 @login_required()
 def approve_basket(request):
     print("basket approved")
