@@ -15,4 +15,27 @@
             {% endfor %}
         </ul>
     </div>
+    <div>
+        <div>Отзывы</div>
+        <ul>
+            {% for review in product.reviews.all %}
+            <li>
+                <div style="display: flex;">
+                    {% with ""|center:10 as range %}
+                        {% for _ in range %}
+                            {% if forloop.counter <= review.rating %}
+                                <div style="width: 10px; height: 20px; background-color: #000;"></div>
+                            {% else %}
+                                <div style="width: 10px; height: 20px; background-color: #999;"></div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                </div>
+                <div>Автор: {{ review.user }}</div>
+                <p>{{ review.text }}</p>
+                <div>{{ review.likes.count }} likes</div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
