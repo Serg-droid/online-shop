@@ -33,7 +33,7 @@
                 </div>
                 <div>Автор: {{ review.user }}</div>
                 <p>{{ review.text }}</p>
-                <div>{{ review.likes.count }} likes</div>
+                <div><a href="{% url "product:add_like_on_review" review.id %}?next={{ request.get_full_path|urlencode }}">{{ review.likes.count }} likes</a></div>
             </li>
             {% endfor %}
         </ul>

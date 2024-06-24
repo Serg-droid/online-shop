@@ -1,10 +1,16 @@
+import json
+import uuid
 from django.contrib.auth.decorators import login_required
-from django.contrib.sessions.models import Session
+from django.core import serializers
+from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import F
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from yookassa import Payment
 
-from product.models import Basket, Product, ProductBasket, ProductCategory
+from product.models import Basket, Product, ProductBasket, ProductCategory, ProductReviewLike
 
 # Create your views here.
 
@@ -60,13 +66,38 @@ def basket(request):
 
 def about_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    return render(request, "product/about.html", { "product" : product })
+    return render(request, "product/about.html", {"product": product})
 
 
 @login_required()
 def approve_basket(request):
-    print("basket approved")
-    return HttpResponse("basket approved")
+    basket = _get_basket(request)
+    basket_total_count = basket.count_total_price()
+    payment = Payment.create({
+        "amount": {
+            "value": basket_total_count,
+            "currency": "RUB"
+        },
+        "confirmation": {
+            "type": "redirect",
+            "return_url": request.build_absolute_uri(reverse("product:payment_success"))
+        },
+        "capture": True,
+        "description": "Заказ №1"
+    }, uuid.uuid4())
+    return HttpResponseRedirect(payment.confirmation.confirmation_url)
+
+
+def payment_success(request):
+    # return render(request, "product/payment_success.html")
+    basket = _get_basket(request)
+    result = {
+        "basket_total_count": basket.count_total_price(),
+        "products": list(
+            basket.products.all().values().annotate(product_count=F("productbasket__product_count"))
+        )
+    }
+    return HttpResponse(json.dumps(result, cls=DjangoJSONEncoder))
 
 
 def _get_basket(request):
@@ -87,3 +118,16 @@ def _get_basket(request):
         request.session["basket_id"] = basket.pk
         request.session
     return basket
+
+
+@login_required()
+def add_like_on_review(request, review_id):
+    try:
+        like = ProductReviewLike(user=request.user, review_id=review_id)
+        like.validate_constraints()
+        like.save()
+    except ValidationError:
+        ProductReviewLike.objects.get(
+            user=request.user, review_id=review_id).delete()
+    redirect_to = request.GET.get("next")
+    return HttpResponseRedirect(redirect_to)
