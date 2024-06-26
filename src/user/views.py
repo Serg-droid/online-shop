@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from user.models import UserImage
 
-from .forms import EditProfileForm, SignupForm
+from .forms import EditProfileForm, SignupForm, UserImageFormSet
 
 # Create your views here.
 
@@ -40,16 +40,18 @@ def edit_profile(request):
     user = request.user
     if request.method == "POST":
         form = EditProfileForm(request.POST, instance=user)
-        if form.is_valid():
+        image_formset = UserImageFormSet(request.POST, request.FILES, instance=user)
+        if form.is_valid() and image_formset.is_valid():
             form.save(commit=True)
+            image_formset.save()
+            print(image_formset.data)
             return HttpResponseRedirect(reverse("account_profile"))
         else:
-            print("Not valid")
-            print(form.errors)
-            return render(request, "user/edit_profile.html", { "form":form })
+            return render(request, "user/edit_profile.html", { "form":form, "image_formset":image_formset })
     elif request.method == "GET":
         form = EditProfileForm(instance=user)
-        return render(request, "user/edit_profile.html", { "form":form })
+        image_formset = UserImageFormSet(instance=user)
+        return render(request, "user/edit_profile.html", { "form":form, "image_formset":image_formset })
     else:
         raise "What a hell?"
     

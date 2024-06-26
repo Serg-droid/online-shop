@@ -1,7 +1,7 @@
 <h2>Edit profile</h2>
 
 <div>
-    <form action="{% url "edit_profile" %}" method="post">
+    <form enctype="multipart/form-data" action="{% url "edit_profile" %}" method="post">
         {% csrf_token %}
         {% if form.errors %}
             <div>
@@ -12,6 +12,7 @@
             </div>
         {% endif %}
         {{ form }}
+        {{ image_formset }}
         <button type="submit">Подтвердить</button>
     </form>
 </div>
