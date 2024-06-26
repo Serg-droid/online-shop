@@ -140,4 +140,4 @@ class Basket(models.Model):
 
 class BasketArchive(models.Model):
     user = ForeignKey(User, on_delete=models.CASCADE)
-    data = models.JSONField(default={})
+    data = models.JSONField(default=dict)
