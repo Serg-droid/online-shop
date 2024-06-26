@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from product.models import Brand, Manufacturer, Product, ProductBasket, Basket, ProductCategory, ProductImage, ProductReview, ProductReviewLike
+from product.models import BasketArchive, Brand, Manufacturer, Product, ProductBasket, Basket, ProductCategory, ProductImage, ProductReview, ProductReviewLike
+from product.views import basket
 
 # Register your models here.
 class ProductBasketInline(admin.TabularInline):
@@ -31,3 +32,5 @@ admin.site.register(Manufacturer)
 admin.site.register(Brand)
 admin.site.register(ProductImage)
 admin.site.register(ProductReview, ProductReviewAdmin)
+
+admin.site.register(BasketArchive)

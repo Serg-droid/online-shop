@@ -1,0 +1,10 @@
+{% load custom_tags %}
+
+{% for basket in baskets %}
+    {% with basket.data|jsonify as data %}
+        <h2>Basket ID: {{ data.basket_id }}</h2>
+        {% for product in data.products %}
+            <div>{{ product }}</div>
+        {% endfor %}
+    {% endwith %}
+{% endfor %}

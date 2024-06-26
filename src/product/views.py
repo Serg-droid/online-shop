@@ -1,16 +1,15 @@
 import json
 import uuid
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from yookassa import Payment
 
-from product.models import Basket, Product, ProductBasket, ProductCategory, ProductReviewLike
+from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductReviewLike
 
 # Create your views here.
 
@@ -80,7 +79,7 @@ def approve_basket(request):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": request.build_absolute_uri(reverse("product:payment_success"))
+            "return_url": request.build_absolute_uri(reverse("product:payment_success", args=[basket.pk]))
         },
         "capture": True,
         "description": "Заказ №1"
@@ -88,16 +87,30 @@ def approve_basket(request):
     return HttpResponseRedirect(payment.confirmation.confirmation_url)
 
 
-def payment_success(request):
+@login_required()
+def payment_success(request, basket_id):
     # return render(request, "product/payment_success.html")
     basket = _get_basket(request)
-    result = {
+    if basket_id != basket.id:
+        raise Http404()
+    basket_data = {
+        "basket_id": basket.pk,
         "basket_total_count": basket.count_total_price(),
         "products": list(
             basket.products.all().values().annotate(product_count=F("productbasket__product_count"))
         )
     }
-    return HttpResponse(json.dumps(result, cls=DjangoJSONEncoder))
+    basket_archive = BasketArchive(user=request.user, data=json.dumps(basket_data, cls=DjangoJSONEncoder))
+    basket_archive.save()
+    basket.delete()
+    return HttpResponseRedirect(reverse("product:purchase_history"))
+    # return HttpResponse([   (basket.data)["basket_total_count"] for basket in all_baskets])
+
+
+@login_required()
+def purchase_history(request):
+    all_baskets = request.user.basketarchive_set.all()
+    return render(request, "product/basket_archive.html", { "baskets" : all_baskets })
 
 
 def _get_basket(request):

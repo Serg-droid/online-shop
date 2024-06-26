@@ -4,6 +4,10 @@
 <h1>Product index page</h1>
 
 <div>
+    <a href="{% url "account_profile" %}">Profile</a>
+</div>
+
+<div>
     <h3>Categories</h3>
     <ul>
         <li>
@@ -17,7 +21,7 @@
     </ul>
 </div>
 
-<div><a href="{% url "product:basket" %}">Basket: {{ basket.products.count }}</a></div>
+<div><a href="{% url "product:basket" %}">Basket: {{ basket.count_products }}</a></div>
 
 <ul>
     {% for product in products %}

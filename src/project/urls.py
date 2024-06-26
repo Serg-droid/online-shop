@@ -24,7 +24,7 @@ from project import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include("django.contrib.auth.urls")),
-    path('accounts/signup/', include("user.urls")),
+    path('accounts/', include("user.urls")),
     path('product/', include("product.urls"))
 ]
 

@@ -7,7 +7,7 @@ class ProductConfig(AppConfig):
 
     def ready(self) -> None:
         from . import signals
-
+        from .templatetags import custom_tags
         Configuration.configure('407541', 'test_XeRG-ksWr2SC5rQa5LqTkQzOwNb8Pcftltd4-8XUH8Y')
 
         return super().ready()

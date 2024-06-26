@@ -11,7 +11,8 @@ urlpatterns = [
     path("remove_product_from_basket/<int:product_id>/", view=views.remove_product_from_basket, name="remove_product_from_basket"),
     path("basket/", view=views.basket, name="basket"),
     path("approve_basket/", views.approve_basket, name="approve_basket"),
-    path("payment_success/", views.payment_success, name="payment_success"),
+    path("payment_success/<int:basket_id>", views.payment_success, name="payment_success"),
+    path("purchase_history/", views.purchase_history, name="purchase_history"),
     path("about_product/<int:product_id>/", views.about_product, name="about_product"),
 
     path("add_like_on_review/<int:review_id>/", view=views.add_like_on_review, name="add_like_on_review")

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q, UniqueConstraint, F
+from django.db.models import Q, ForeignKey, Sum, UniqueConstraint, F
 from django.core.validators import MinLengthValidator
 
 
@@ -123,11 +123,21 @@ class Basket(models.Model):
 
     def count_total_price(self):
         price = 0
-        products = self.products.all().annotate(
+        products = self.products.annotate(
             count_in_basket=F("productbasket__product_count"))
         for product in products:
             price += product.count_price() * product.count_in_basket
         return price
+    
+    def count_products(self):
+        result = self.products.annotate(
+            count_in_basket=F("productbasket__product_count")
+        ).aggregate(count=Sum("count_in_basket", default=0))
+        return result.get("count")
 
     def __str__(self):
         return str(self.pk)
+
+class BasketArchive(models.Model):
+    user = ForeignKey(User, on_delete=models.CASCADE)
+    data = models.JSONField(default={})
