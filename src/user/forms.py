@@ -10,6 +10,7 @@ class SignupForm(UserCreationForm):
 
 
 class EditProfileForm(forms.ModelForm):
+
     class Meta:
         model = User
         fields = ["first_name", "last_name", "username", "email"]
