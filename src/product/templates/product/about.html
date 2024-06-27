@@ -17,6 +17,11 @@
     </div>
     <div>
         <div>Отзывы</div>
+        <form action="{{ request.get_full_path|urlencode }}" method="post">
+            {% csrf_token %}
+            {{product_review_form}}
+            <button type="submit">Submit</button>
+        </form>
         <ul>
             {% for review in product.reviews.all %}
             <li>

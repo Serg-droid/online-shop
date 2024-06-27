@@ -3,16 +3,20 @@
 <div>
     <form enctype="multipart/form-data" action="{% url "edit_profile" %}" method="post">
         {% csrf_token %}
-        {% if form.errors %}
+        {% if form.errors or image_formset.errors %}
             <div>
                 <div>Ошибки:</div>
                 <div>
                     {{ form.errors }}
+                    {{ image_formset.errors }}
                 </div>
             </div>
         {% endif %}
         {{ form }}
         {{ image_formset }}
+        {% for image_form in image_formset %}
+            <img style="width: 400px; height: 300px;" src="{% if image_form.instance.image %}{{ image_form.instance.image.url }}{% endif %}" alt="No image">
+        {% endfor %}
         <button type="submit">Подтвердить</button>
     </form>
 </div>

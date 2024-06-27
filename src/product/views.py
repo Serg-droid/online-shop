@@ -4,12 +4,15 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F
+from django.forms import model_to_dict
 from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from yookassa import Payment
 
-from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductReviewLike
+from product.forms import ProductReviewForm
+from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductReview, ProductReviewLike
 
 # Create your views here.
 
@@ -65,7 +68,19 @@ def basket(request):
 
 def about_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    return render(request, "product/about.html", {"product": product})
+    if request.user:
+        try:
+            product_review = ProductReview.objects.get(user=request.user, product=product)
+        except ProductReview.DoesNotExist:
+            product_review = ProductReview(product=product, user=request.user)
+
+        if request.method == "POST":
+            product_review_form = ProductReviewForm(data=request.POST, instance=product_review)
+            if product_review_form.is_valid():
+                product_review_form.save()
+        else:
+            product_review_form = ProductReviewForm(instance=product_review)
+    return render(request, "product/about.html", {"product": product, "product_review_form":product_review_form})
 
 
 @login_required()
