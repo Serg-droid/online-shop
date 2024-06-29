@@ -72,21 +72,19 @@ def is_authed(request):
     return JsonResponse(data={"ok": True})
 
 
+@api_view(["POST"])
 @csrf_exempt
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def send_message(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        secret_key = data.get("secret_key")
-        if secret_key:
-            user = _get_user_from_secret_key(secret_key)
-            companion = get_object_or_404(User, pk=data.get("companion_id"))
-            message_text = data.get("message")
-            message = ChatMessage(msg_from=user, msg_to=companion, text=message_text)
-            message.save()
+    data = json.loads(request.body)
+    companion = get_object_or_404(User, pk=data.get("companion_id"))
+    message_text = data.get("message")
+    message = ChatMessage(msg_from=request.user, msg_to=companion, text=message_text)
+    message.save()
 
-        return JsonResponse({
-            "data" : model_to_dict(message)
-        })    
+    return JsonResponse(model_to_dict(message))    
+
 
 
 
