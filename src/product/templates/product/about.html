@@ -1,5 +1,7 @@
 <h2>About product: {{ product.title }}</h2>
 
+<a href="{% url "product:index" %}">Все товары</a>
+
 <div>
     <div>Описание товара</div>
     <div>Состав: <br> {{ product.ingredients }} </div>

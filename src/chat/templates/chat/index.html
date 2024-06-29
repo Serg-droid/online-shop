@@ -1,0 +1,25 @@
+{% load static %}
+
+
+{{ data|json_script:"initial_data_json" }}
+
+
+<h2>CHAT</h2>
+
+<div>Chat with {{ companion.username }}</div>
+<ul>
+    {% for msg in messages %}
+    <li>
+        <div style="text-align:{% if companion.id == msg.msg_from.id %}left;{% else %}right;{% endif %}">
+            {{ msg.text }}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+
+
+<form id="form">
+    <input type="hidden" value="{{companion.id}}" id="companion_id">
+    <input type="text" id="input"> 
+    <button type="submit">Отправить сообщение</button>
+</form>
