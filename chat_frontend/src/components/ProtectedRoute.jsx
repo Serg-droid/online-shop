@@ -1,11 +1,12 @@
-import { useEffect, useState, cloneElement } from "react"
+import { useEffect, useState, cloneElement, useContext } from "react"
 import { Navigate } from "react-router-dom";
 import axios from "axios"
+import { StateContext } from "../main";
 
 
 export function AuthProtectedRoute({ children }) {
+    const { authState } = useContext(StateContext)
     const [isAuthed, setIsAuthed] = useState(null)
-    const [token, setToken] = useState(null)
 
     useEffect(() => {
         async function checkAuth() {
@@ -21,7 +22,7 @@ export function AuthProtectedRoute({ children }) {
             }).catch(() => {})
             if (res.data.ok == true) {
                 setIsAuthed(true)
-                setToken(token)
+                authState.token = token
             } else {
                 setIsAuthed(false)
             }
@@ -32,6 +33,5 @@ export function AuthProtectedRoute({ children }) {
     if (isAuthed == null) {
         return <p>LOADING...</p>
     }
-    const clonedChildren = cloneElement(children, { token })
-    return (isAuthed && {...clonedChildren}) || <Navigate to="/login"></Navigate>
+    return (isAuthed && {...children}) || <Navigate to="/login"></Navigate>
 }

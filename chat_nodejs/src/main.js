@@ -10,7 +10,7 @@ const httpServer = createServer();
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://127.0.0.1:8000",
+    origin: ["http://127.0.0.1:8000", "http://localhost:5173"],
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -22,10 +22,12 @@ io.on("connection", (socket) => {
     try {
       const res = await axios.post("http://localhost:8000/chat/send_message/", {
         message: msg.data,
-        secret_key: msg.secret_key,
         companion_id: msg.companion_id
+      }, {
+        headers: {
+          "Authorization": `Token ${msg.token}`
+        }
       })
-      
       socket.emit("add message", res.data)
     } catch (e) {
       console.error(e)
