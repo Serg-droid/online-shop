@@ -1,5 +1,7 @@
 import { createServer } from "node:http";
 
+import "dotenv/config"
+
 import { Server } from "socket.io";
 
 import axios from "axios"
@@ -10,7 +12,7 @@ const SocketMap = new Map()
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://127.0.0.1:8000", "http://localhost:5173"],
+    origin: JSON.parse(process.env.SOCKET_IO_CORS_ALLOWED_ORIGINS),
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -20,7 +22,7 @@ async function isTokenAuthed(token) {
   if (token == null) {
     return false
   }
-  const res = await axios.get("http://localhost:8000/chat/is_authed/", {
+  const res = await axios.get(`${process.env.MASTER_SERVER_DOMAIN}chat/is_authed/`, {
       headers: {
           "Authorization": `Token ${token}`
       }
@@ -35,7 +37,7 @@ async function isTokenAuthed(token) {
 function setupHandlers(socket) {
   socket.on("chat message", async (msg) => {
     try {
-      const res = await axios.post("http://localhost:8000/chat/send_message/", {
+      const res = await axios.post(`${process.env.MASTER_SERVER_DOMAIN}chat/send_message/`, {
         message: msg.data,
         companion_id: msg.companion_id
       }, {
@@ -44,7 +46,9 @@ function setupHandlers(socket) {
         }
       })
       socket.emit("add message", res.data)
-      const socket_set = SocketMap.get(msg.companion_id)
+      const socket_set = SocketMap.get(String(msg.companion_id))
+      console.log(socket_set)
+      if (socket_set == null) return
       socket_set.forEach(socket => {
         console.log(`Emit to user with id: ${msg.companion_id}`)
         socket.emit("add message", res.data)

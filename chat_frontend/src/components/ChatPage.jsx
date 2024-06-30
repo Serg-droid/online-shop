@@ -16,11 +16,12 @@ export const ChatPage = observer(() => {
     useEffect(() => {
         async function fetchChat() {
             try {
-                const res = await axios.get(`http://localhost:8000/chat/${companion_id}`, {
+                const res = await axios.get(`${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/${companion_id}`, {
                     headers: {
                         "Authorization": `Token ${authState.token}`
                     }
                 })
+                // console.log(res.data.messages)
                 chatState.messages = res.data.messages
                 chatState.companion = res.data.companion
                 setLoading(false)

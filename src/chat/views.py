@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import AnonymousUser
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q
+from django.db.models import F, Q
 from django.forms import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -86,6 +86,12 @@ def send_message(request):
     return JsonResponse(model_to_dict(message))    
 
 
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def chat_list(request):
+    users = User.objects.exclude(id=request.user.id).values(companion_username=F("username"), companion_id=F("id"))
+    return JsonResponse(list(users), safe=False)
 
 
 def _get_user_from_secret_key(secret_key):

@@ -22,7 +22,7 @@ class SocketState {
   }
 
   connectSocket(token, user_id) {
-    this.socket = io("http://localhost:3000", {
+    this.socket = io(import.meta.env.VITE_SOCKET_IO_DOMAIN, {
       withCredentials: true,
       query: {
         token,
@@ -33,6 +33,7 @@ class SocketState {
 
   setupHandlers(state) {
     this.socket.on("add message", (message) => {
+      console.log("afiuabf")
       runInAction(() => {
         state.chatState.messages.push(message)
       })
@@ -53,8 +54,22 @@ class ChatState {
   messages = []
   companion = null
 
+  chats_list = []
+
   constructor() {
     makeAutoObservable(this)
+  }
+
+  async loadChatsList(authState) {
+    const res = await axios.get(`${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/list/`, {
+      headers: {
+          "Authorization": `Token ${authState.token}`
+      }
+    })
+    console.log(res.data)
+    runInAction(() => {
+      this.chats_list = res.data
+    })
   }
 }
 
@@ -72,7 +87,7 @@ export async function checkAuth() {
   if (token == null) {
       return false
   }
-  const res = await axios.get("http://localhost:8000/chat/is_authed/", {
+  const res = await axios.get(`${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/is_authed/`, {
       headers: {
           "Authorization": `Token ${token}`
       }

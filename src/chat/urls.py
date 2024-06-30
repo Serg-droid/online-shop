@@ -14,6 +14,7 @@ app_name = "chat"
 urlpatterns = [
     path("open_chat/<int:user_id>", views.open_chat, name="open_chat"),
     path("send_message/", views.send_message, name="send_message"),
+    path("list/", views.chat_list),
 
     path('api-token-auth/', obtain_auth_token),
     path("is_authed/", views.is_authed),

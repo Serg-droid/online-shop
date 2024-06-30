@@ -13,21 +13,19 @@ export function LoginPage() {
         e.preventDefault()
         console.log(password, login)
         try {
-            const res = await axios.post("http://localhost:8000/chat/api-token-auth/", {
+            const res = await axios.post(`${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/api-token-auth/`, {
                 username: login,
                 password: password
             })
             localStorage.setItem("token", res.data.token)
             navigate("/chats_list/")
         } catch (e) {
-            alert(e)
-            alert()
+            throw e
         }
     }
 
     return (
         <div>
-            qwqwefqwfe
             <form onSubmit={onFormSubmit}>
                 <div>
                     <label htmlFor="login">Логин</label>
