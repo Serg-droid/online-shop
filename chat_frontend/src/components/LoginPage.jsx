@@ -12,16 +12,22 @@ export function LoginPage() {
     const onFormSubmit = async (e) => {
         e.preventDefault()
         console.log(password, login)
-        const res = await axios.post("http://localhost:8000/chat/api-token-auth/", {
-            username: login,
-            password: password
-        })
-        localStorage.setItem("token", res.data.token)
-        navigate("/chats_list/")
+        try {
+            const res = await axios.post("http://localhost:8000/chat/api-token-auth/", {
+                username: login,
+                password: password
+            })
+            localStorage.setItem("token", res.data.token)
+            navigate("/chats_list/")
+        } catch (e) {
+            alert(e)
+            alert()
+        }
     }
 
     return (
         <div>
+            qwqwefqwfe
             <form onSubmit={onFormSubmit}>
                 <div>
                     <label htmlFor="login">Логин</label>
@@ -31,7 +37,7 @@ export function LoginPage() {
                     <label htmlFor="password">Пароль</label>
                     <input value={password} onChange={(e) => setPassword(e.target.value)} id="password" type="password" />
                 </div>
-                <button type="submit">Submit</button>
+                <input type="submit" value="Submit" />
             </form>
         </div>
     )

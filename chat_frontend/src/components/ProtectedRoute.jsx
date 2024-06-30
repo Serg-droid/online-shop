@@ -1,34 +1,31 @@
-import { useEffect, useState, cloneElement, useContext } from "react"
+import { useEffect, useState, cloneElement, useContext, useCallback } from "react"
 import { Navigate } from "react-router-dom";
 import axios from "axios"
-import { StateContext } from "../main";
+import { StateContext, checkAuth } from "../main";
+
+
+
+async function _checkAuth() {
+    return checkAuth()
+}
+
 
 
 export function AuthProtectedRoute({ children }) {
     const { authState } = useContext(StateContext)
     const [isAuthed, setIsAuthed] = useState(null)
+    const [isPending, setIsPending] = useState(true)
+
+    const [state, setState] = useState("state");
+
+    const _checkAuth = useCallback(async () => {
+        const isAuthed = await checkAuth()
+        setIsAuthed(isAuthed)
+    }, [state])
 
     useEffect(() => {
-        async function checkAuth() {
-            const token = localStorage.getItem("token")
-            if (token == null) {
-                setIsAuthed(false)
-            }
-
-            const res = await axios.get("http://localhost:8000/chat/is_authed/", {
-                headers: {
-                    "Authorization": `Token ${token}`
-                }
-            }).catch(() => {})
-            if (res.data.ok == true) {
-                setIsAuthed(true)
-                authState.token = token
-            } else {
-                setIsAuthed(false)
-            }
-        }
-        checkAuth()
-    }, [])
+        _checkAuth()
+    }, [_checkAuth])
 
     if (isAuthed == null) {
         return <p>LOADING...</p>

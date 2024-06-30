@@ -12,21 +12,37 @@ import App from './App.jsx'
 import { Page404 } from './components/Page404.jsx'
 import { io } from "socket.io-client"
 import { makeAutoObservable, runInAction } from "mobx"
+import axios from "axios"
 
 class SocketState {
-  socket = io("http://localhost:3000", {
-    withCredentials: true
-  })
+  socket = null
 
   constructor() {
     makeAutoObservable(this)
   }
 
+  connectSocket(token, user_id) {
+    this.socket = io("http://localhost:3000", {
+      withCredentials: true,
+      query: {
+        token,
+        user_id
+      }
+    })
+  }
 
+  setupHandlers(state) {
+    this.socket.on("add message", (message) => {
+      runInAction(() => {
+        state.chatState.messages.push(message)
+      })
+    })
+  }
 }
 
 class AuthState {
   token = null
+  user_id = null
 
   constructor() {
     makeAutoObservable(this)
@@ -49,11 +65,46 @@ const state = {
   authState: new AuthState()
 }
 
-state.socketState.socket.on("add message", (message) => {
-  runInAction(() => {
-    state.chatState.messages.push(message)
-  })
-})
+
+export async function checkAuth() {
+  if (state.authState.token) return true
+  const token = localStorage.getItem("token")
+  if (token == null) {
+      return false
+  }
+  const res = await axios.get("http://localhost:8000/chat/is_authed/", {
+      headers: {
+          "Authorization": `Token ${token}`
+      }
+  }).catch(() => {})
+  if (res.data.ok == true) {
+      const user_id = res.data.user_id
+      state.authState.token = token
+      state.authState.user_id = user_id
+      return true
+  } else {
+      return false
+  }
+}
+
+async function init() {
+  const isAuthed = await checkAuth()
+  if (!isAuthed) return
+  const { token, user_id } = state.authState
+  state.socketState.connectSocket(token, user_id)
+  state.socketState.setupHandlers(state)
+  try {
+
+  } catch(e) {
+    console.error(e)
+  }
+}
+
+try {
+  await init()
+} catch (e) {
+  console.error(e)
+}
 
 
 export const StateContext = createContext({})
@@ -78,14 +129,14 @@ const router = createBrowserRouter([
         element: <ChatPage />
       },
       {
-        path: "login/",
-        element: <LoginPage/>
-      },
-      {
         path: "app/",
         element: <App />
       },
     ]
+  },
+  {
+    path: "login/",
+    element: <LoginPage/>
   },
   {
     path: "*",

@@ -69,7 +69,7 @@ def get_chat_data(request, companion_id):
 def is_authed(request):
     if (isinstance(request.user, AnonymousUser)):
         return JsonResponse(data={"ok": False})
-    return JsonResponse(data={"ok": True})
+    return JsonResponse(data={"ok": True, "user_id": request.user.id})
 
 
 @api_view(["POST"])
