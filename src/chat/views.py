@@ -1,4 +1,5 @@
 import json
+import re
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import AnonymousUser
@@ -77,13 +78,21 @@ def is_authed(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def send_message(request):
-    data = json.loads(request.body)
-    companion = get_object_or_404(User, pk=data.get("companion_id"))
-    message_text = data.get("message")
-    message = ChatMessage(msg_from=request.user, msg_to=companion, text=message_text)
-    message.save()
-
-    return JsonResponse(model_to_dict(message))    
+    if (request.FILES):
+        data = json.loads(request.data.get("data"))
+        print(request.data)
+        companion = get_object_or_404(User, pk=data.get("companion_id"))
+        message_text = data.setdefault("message", "")
+        message = ChatMessage(msg_from=request.user, msg_to=companion, text=message_text, image=request.FILES["file"])
+        message.save()
+        return JsonResponse(MessageSerializer(message).data)  
+    else:
+        data = request.data
+        companion = get_object_or_404(User, pk=data.get("companion_id"))
+        message_text = data.get("message")
+        message = ChatMessage(msg_from=request.user, msg_to=companion, text=message_text)
+        message.save()
+        return JsonResponse(MessageSerializer(message).data)    
 
 
 @api_view(["GET"])

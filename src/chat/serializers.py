@@ -7,7 +7,7 @@ from chat.models import ChatMessage
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessage
-        fields = ["msg_from", "msg_to", "publicated_at", "text"]
+        fields = ["msg_from", "msg_to", "publicated_at", "text", "image"]
 
 
 class UserSerializer(serializers.ModelSerializer):
