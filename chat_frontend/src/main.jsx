@@ -10,70 +10,70 @@ import { ChatPage } from './components/ChatPage.jsx'
 import { AuthProtectedRoute } from './components/ProtectedRoute.jsx'
 import App from './App.jsx'
 import { Page404 } from './components/Page404.jsx'
-import { io } from "socket.io-client"
-import { makeAutoObservable, runInAction } from "mobx"
-import axios from "axios"
+import { io } from 'socket.io-client'
+import { makeAutoObservable, runInAction } from 'mobx'
+import axios from 'axios'
 import { checkAuth, state, StateContext } from './state.js'
-
+import { StyledEngineProvider } from '@mui/joy'
 
 async function init() {
-  const isAuthed = await checkAuth()
-  if (!isAuthed) return
-  const { token, user_id } = state.authState
-  state.socketState.connectSocket(token, user_id)
-  state.socketState.setupHandlers(state)
-  try {
-
-  } catch(e) {
-    console.error(e)
-  }
+    const isAuthed = await checkAuth()
+    if (!isAuthed) return
+    const { token, user_id } = state.authState
+    state.socketState.connectSocket(token, user_id)
+    state.socketState.setupHandlers(state)
+    try {
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 try {
-  await init()
+    await init()
 } catch (e) {
-  console.error(e)
+    console.error(e)
 }
 
-
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <AuthProtectedRoute>
-        <Root />
-      </AuthProtectedRoute>
-    ),
-    errorElement: <ErrorPage/>,
-    children: [
-      {
-        path: "chats_list/",
-        element: <ChatsListPage />,
-      },
-      {
-        path: "chat/:companion_id",
-        element: <ChatPage />
-      },
-      {
-        path: "app/",
-        element: <App />
-      },
-    ]
-  },
-  {
-    path: "login/",
-    element: <LoginPage/>
-  },
-  {
-    path: "*",
-    element: <Page404/>
-  }
+    {
+        path: '/',
+        element: (
+            <AuthProtectedRoute>
+                <StyledEngineProvider injectFirst>
+                    <Root />
+                </StyledEngineProvider>
+            </AuthProtectedRoute>
+        ),
+        errorElement: <ErrorPage />,
+        children: [
+            {
+                path: 'chats_list/',
+                element: <ChatsListPage />,
+            },
+            {
+                path: 'chat/:companion_id',
+                element: <ChatPage />,
+            },
+            {
+                path: 'app/',
+                element: <App />,
+            },
+        ],
+    },
+    {
+        path: 'login/',
+        element: <LoginPage />,
+    },
+    {
+        path: '*',
+        element: <Page404 />,
+    },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <StateContext.Provider value={state}>
-      <RouterProvider router={router} />
-    </StateContext.Provider>
-  </React.StrictMode>,
+    <React.StrictMode>
+        <StateContext.Provider value={state}>
+            <RouterProvider router={router} />
+        </StateContext.Provider>
+    </React.StrictMode>,
 )
