@@ -7,7 +7,14 @@ from chat.models import ChatMessage
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessage
-        fields = ["msg_from", "msg_to", "publicated_at", "text", "image"]
+        fields = ["id", "msg_from", "msg_to", "publicated_at", "text", "image", "deleted"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if (instance.deleted):
+            data["text"] = None
+            data["image"] = None
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):

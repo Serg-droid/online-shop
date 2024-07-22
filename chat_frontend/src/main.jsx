@@ -13,94 +13,8 @@ import { Page404 } from './components/Page404.jsx'
 import { io } from "socket.io-client"
 import { makeAutoObservable, runInAction } from "mobx"
 import axios from "axios"
+import { checkAuth, state, StateContext } from './state.js'
 
-class SocketState {
-  socket = null
-
-  constructor() {
-    makeAutoObservable(this)
-  }
-
-  connectSocket(token, user_id) {
-    this.socket = io(import.meta.env.VITE_SOCKET_IO_DOMAIN, {
-      withCredentials: true,
-      query: {
-        token,
-        user_id
-      }
-    })
-  }
-
-  setupHandlers(state) {
-    this.socket.on("add message", (message) => {
-      console.log("afiuabf")
-      runInAction(() => {
-        state.chatState.messages.push(message)
-      })
-    })
-  }
-}
-
-class AuthState {
-  token = null
-  user_id = null
-
-  constructor() {
-    makeAutoObservable(this)
-  }
-}
-
-class ChatState {
-  messages = []
-  companion = null
-
-  chats_list = []
-
-  constructor() {
-    makeAutoObservable(this)
-  }
-
-  async loadChatsList(authState) {
-    const res = await axios.get(`${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/list/`, {
-      headers: {
-          "Authorization": `Token ${authState.token}`
-      }
-    })
-    console.log(res.data)
-    runInAction(() => {
-      this.chats_list = res.data
-    })
-  }
-}
-
-
-const state = {
-  socketState: new SocketState(),
-  chatState: new ChatState(),
-  authState: new AuthState()
-}
-
-
-export async function checkAuth() {
-  if (state.authState.token) return true
-  const token = localStorage.getItem("token")
-  if (token == null) {
-      return false
-  }
-  const res = await axios.get(`${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/is_authed/`, {
-      headers: {
-          "Authorization": `Token ${token}`
-      }
-  }).catch(() => {})
-  if (res.data.ok == true) {
-      const user_id = res.data.user_id
-      state.authState.token = token
-      state.authState.user_id = user_id
-      return true
-  } else {
-      return false
-  }
-}
 
 async function init() {
   const isAuthed = await checkAuth()
@@ -120,9 +34,6 @@ try {
 } catch (e) {
   console.error(e)
 }
-
-
-export const StateContext = createContext({})
 
 
 const router = createBrowserRouter([

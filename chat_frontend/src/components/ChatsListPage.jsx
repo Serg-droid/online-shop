@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react"
-import { StateContext } from "../main"
+import { StateContext } from "../state"
 import { Link } from "react-router-dom"
 
 export function ChatsListPage() {

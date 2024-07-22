@@ -1,7 +1,7 @@
 import { useEffect, useState, cloneElement, useContext, useCallback } from "react"
 import { Navigate } from "react-router-dom";
 import axios from "axios"
-import { StateContext, checkAuth } from "../main";
+import { StateContext, checkAuth } from "../state";
 
 
 

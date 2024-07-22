@@ -1,0 +1,1 @@
+export { ChatMessageWrapper as ChatMessage } from "./ChatMessageWrapper"

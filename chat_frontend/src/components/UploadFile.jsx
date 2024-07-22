@@ -1,13 +1,12 @@
 import { useState, useContext } from "react";
-import axios from "axios"
 
-import { StateContext } from "../main";
+import { StateContext } from "../state";
 
 
 export function UploadFile({ companion_id }) {
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const { authState } = useContext(StateContext);
+  const { authState, chatState } = useContext(StateContext);
   
   const onInputChange = (e) => {
     setFile(e.target.files[0])
@@ -20,21 +19,14 @@ export function UploadFile({ companion_id }) {
     formData.append("data", JSON.stringify({
       companion_id
     }))
-    const res = await axios.post(
-      `${import.meta.env.VITE_MASTER_SERVER_DOMAIN}chat/send_message/`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Token ${authState.token}`
-        },
-        onUploadProgress: function(progressEvent) {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        }
+    chatState.sendMessageWithImage({ 
+      formData, 
+      token: authState.token,
+      onUploadProgress: function(progressEvent) {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percentCompleted);
       }
-    );
-    console.log(res)
+    })
   };
 
   return (
