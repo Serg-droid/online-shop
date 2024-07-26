@@ -21,6 +21,8 @@ export const ChatPage = observer(() => {
     const [loading, setLoading] = useState(true)
     const [messageText, setMessageText] = useState('')
 
+    const [uploadProgress, setUploadProgress] = useState(0);
+
     // FROM mui
     const chat = chats[0]
     const [chatMessages, setChatMessages] = useState(chat.messages)
@@ -112,6 +114,7 @@ export const ChatPage = observer(() => {
                                         content={message.text}
                                         you={authState.user_id}
                                         companion={chatState.companion}
+                                        images={message.chatimage_set}
                                         {...message}
                                     />
                                 </Stack>
@@ -122,7 +125,7 @@ export const ChatPage = observer(() => {
                 <MessageInput
                     textAreaValue={textAreaValue}
                     setTextAreaValue={setTextAreaValue}
-                    onSubmit={() => {
+                    onSubmit={(files=[]) => {
                         const newId = chatMessages.length + 1
                         const newIdString = newId.toString()
                         const messageText = textAreaValue
@@ -135,13 +138,28 @@ export const ChatPage = observer(() => {
                                 timestamp: 'Just now',
                             },
                         ])
-                        chatState.sendMessage({
-                            data: messageText,
-                            token: authState.token,
-                            companion_id,
+                        // chatState.sendMessage({
+                        //     data: messageText,
+                        //     token: authState.token,
+                        //     companion_id,
+                        // })
+                        const formData = new FormData()
+                        files.forEach(file => formData.append("files", file))
+                        formData.append("data", JSON.stringify({
+                          companion_id,
+                          message: messageText
+                        }))
+                        chatState.sendMessageWithImage({ 
+                          formData, 
+                          token: authState.token,
+                          onUploadProgress: function(progressEvent) {
+                            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                            setUploadProgress(percentCompleted);
+                          }
                         })
                     }}
                 />
+                <progress value={uploadProgress} max="100"></progress>
             </Sheet>
 
             <ul>

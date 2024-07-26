@@ -5,16 +5,27 @@ import FormatItalicRoundedIcon from '@mui/icons-material/FormatItalicRounded';
 import StrikethroughSRoundedIcon from '@mui/icons-material/StrikethroughSRounded';
 import FormatListBulletedRoundedIcon from '@mui/icons-material/FormatListBulletedRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export default function MessageInput(props) {
-    const { textAreaValue, setTextAreaValue, onSubmit, addMessage } = props;
+    const { textAreaValue, setTextAreaValue, onSubmit } = props;
     const textAreaRef = useRef(null);
+
+    const fileInputRef = useRef(null)
+
+    const [files, setFiles] = useState([])
+    const onFileInputChange = (e) => {
+      setFiles(Array.from(e.target.files))
+    }
+
     const handleClick = () => {
 
-      if (textAreaValue.trim() !== '') {
-        onSubmit();
+      if (textAreaValue.trim() !== '' || files.length > 0) {
+        onSubmit(files);
         setTextAreaValue('');
+        setFiles([])
+        console.log(fileInputRef.current)
+        fileInputRef.current.value = null
       }
     };
     return (
@@ -56,6 +67,8 @@ export default function MessageInput(props) {
                   <IconButton size="sm" variant="plain" color="neutral">
                     <FormatListBulletedRoundedIcon />
                   </IconButton>
+                  <label htmlFor="file">File</label>
+                  <input ref={fileInputRef} multiple id="file" name="file" type="file" onChange={onFileInputChange} />
                 </div>
                 <Button
                   size="sm"

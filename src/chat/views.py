@@ -19,7 +19,7 @@ from rest_framework.renderers import JSONRenderer
 from chat.serializers import MessageSerializer, UserSerializer
 from event_emitter import Event
 
-from .models import ChatMessage
+from .models import ChatImage, ChatMessage
 
 # Create your views here.
 
@@ -78,17 +78,18 @@ def is_authed(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def send_message(request):
+    data = json.loads(request.data.get("data"))
     if (request.FILES):
-        data = json.loads(request.data.get("data"))
-        image = request.FILES["file"]
+        images = request.FILES.getlist("files")
     else:
-        data = request.data
-        image = None
-    print(request.data)
+        images = []
     companion = get_object_or_404(User, pk=data.get("companion_id"))
     message_text = data.setdefault("message", "")
-    message = ChatMessage(msg_from=request.user, msg_to=companion, text=message_text, image=image)
+    message = ChatMessage(msg_from=request.user, msg_to=companion, text=message_text)
     message.save()
+    for i in images:
+        chat_image = ChatImage(image=i, message=message)
+        chat_image.save()
     Event.emit(user_receivers_id=companion.id, data=MessageSerializer(message).data)
     return JsonResponse(MessageSerializer(message).data)
 

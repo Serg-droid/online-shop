@@ -1,7 +1,13 @@
 from django.contrib import admin
 
-from chat.models import ChatMessage
+from chat.models import ChatImage, ChatMessage
 
 # Register your models here.
 
-admin.site.register(ChatMessage)
+class ChatImageInline(admin.TabularInline):
+    model = ChatImage
+
+class ChatMessageAdmin(admin.ModelAdmin):
+    inlines = [ChatImageInline, ]
+
+admin.site.register(ChatMessage, ChatMessageAdmin)
