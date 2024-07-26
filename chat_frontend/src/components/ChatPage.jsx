@@ -74,7 +74,7 @@ export const ChatPage = observer(() => {
                     backgroundColor: 'background.level1',
                 }}
             >
-                <MessagesPaneHeader sender={chat.sender} />
+                <MessagesPaneHeader sender={chatState.companion} />
                 <Box
                     sx={{
                         display: 'flex',
@@ -87,8 +87,8 @@ export const ChatPage = observer(() => {
                     }}
                 >
                     <Stack spacing={2} justifyContent='flex-end'>
-                        {chatMessages.map((message, index) => {
-                            const isYou = message.sender === 'You'
+                        {chatState.messages.map((message, index) => {
+                            const isYou = message.msg_from === authState.user_id
                             return (
                                 <Stack
                                     key={index}
@@ -98,14 +98,19 @@ export const ChatPage = observer(() => {
                                         isYou ? 'row-reverse' : 'row'
                                     }
                                 >
-                                    {message.sender !== 'You' && (
+                                    {!isYou && (
                                         <AvatarWithStatus
-                                            online={message.sender.online}
-                                            src={message.sender.avatar}
+                                            online={chatState.companion.online || true}
+                                            src={chatState.companion.avatar}
                                         />
                                     )}
                                     <ChatBubble
                                         variant={isYou ? 'sent' : 'received'}
+                                        sender={message.msg_from}
+                                        timestamp={"Thurshday 13th. 10:23"}
+                                        content={message.text}
+                                        you={authState.user_id}
+                                        companion={chatState.companion}
                                         {...message}
                                     />
                                 </Stack>
@@ -119,6 +124,7 @@ export const ChatPage = observer(() => {
                     onSubmit={() => {
                         const newId = chatMessages.length + 1
                         const newIdString = newId.toString()
+                        const messageText = textAreaValue
                         setChatMessages([
                             ...chatMessages,
                             {
@@ -128,6 +134,11 @@ export const ChatPage = observer(() => {
                                 timestamp: 'Just now',
                             },
                         ])
+                        chatState.sendMessage({
+                            data: messageText,
+                            token: authState.token,
+                            companion_id,
+                        })
                     }}
                 />
             </Sheet>

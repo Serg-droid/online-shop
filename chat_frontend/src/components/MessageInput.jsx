@@ -8,9 +8,10 @@ import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import { useRef } from "react";
 
 export default function MessageInput(props) {
-    const { textAreaValue, setTextAreaValue, onSubmit } = props;
+    const { textAreaValue, setTextAreaValue, onSubmit, addMessage } = props;
     const textAreaRef = useRef(null);
     const handleClick = () => {
+
       if (textAreaValue.trim() !== '') {
         onSubmit();
         setTextAreaValue('');

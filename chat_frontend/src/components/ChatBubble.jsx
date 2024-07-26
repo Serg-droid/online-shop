@@ -3,7 +3,7 @@ import {InsertDriveFileRounded as InsertDriveFileRoundedIcon, CelebrationOutline
 import { useState } from "react";
 
 export function ChatBubble(props) {
-    const { content, variant, timestamp, attachment = undefined, sender } = props;
+    const { content, variant, timestamp, attachment = undefined, sender, you, companion } = props;
     const isSent = variant === 'sent';
     const [isHovered, setIsHovered] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
@@ -17,7 +17,7 @@ export function ChatBubble(props) {
           sx={{ mb: 0.25 }}
         >
           <Typography level="body-xs">
-            {sender === 'You' ? sender : sender.name}
+            {sender === you ? "You" : companion.username}
           </Typography>
           <Typography level="body-xs">{timestamp}</Typography>
         </Stack>
