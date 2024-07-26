@@ -8,7 +8,7 @@ from user.models import Profile
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessage
-        fields = ["id", "msg_from", "msg_to", "publicated_at", "text", "image", "deleted"]
+        fields = ["id", "msg_from", "msg_to", "publicated_at", "text", "image", "deleted", "created_at"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -33,5 +33,4 @@ class UserSerializer(serializers.ModelSerializer):
         
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data["online"] = True
         return data

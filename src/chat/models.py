@@ -13,6 +13,7 @@ class ChatMessage(models.Model):
     text = models.TextField()
     image = models.ImageField(upload_to="chat_media/", blank=True, null=True)
     deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
     def __str__(self) -> str:

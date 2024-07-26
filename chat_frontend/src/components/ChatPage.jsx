@@ -9,6 +9,7 @@ import { Box, Sheet, Stack } from '@mui/joy'
 import { MessagesPaneHeader } from './MessagesPaneHeader'
 import { AvatarWithStatus } from './AvatarWithStatus'
 import MessageInput from './MessageInput'
+import {format} from "date-fns"
 
 import { chats } from '../fakeData'
 import { ChatBubble } from './ChatBubble'
@@ -107,7 +108,7 @@ export const ChatPage = observer(() => {
                                     <ChatBubble
                                         variant={isYou ? 'sent' : 'received'}
                                         sender={message.msg_from}
-                                        timestamp={"Thurshday 13th. 10:23"}
+                                        timestamp={format(message.created_at, "	EEEE do. kk:mm")}
                                         content={message.text}
                                         you={authState.user_id}
                                         companion={chatState.companion}

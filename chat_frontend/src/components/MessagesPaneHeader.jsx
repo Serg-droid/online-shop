@@ -8,6 +8,7 @@ import {
 
 export const MessagesPaneHeader = props => {
     const { sender } = props
+    console.log(sender.profile)
     return (
         <Stack
             direction='row'
@@ -49,7 +50,7 @@ export const MessagesPaneHeader = props => {
                         component='h2'
                         noWrap
                         endDecorator={
-                            sender.online ? (
+                            sender.profile.is_online ? (
                                 <Chip
                                     variant='outlined'
                                     size='sm'
