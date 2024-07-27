@@ -5,6 +5,9 @@
     <a href="{% url "account_profile" %}">Profile</a>
     <a href="http://localhost:5173/chats_list">Chat</a>
 </div>
+<div>
+    <a href="{% url "product:basket" %}">Basket: {{ basket.count_products }}</a>
+</div>
 <form method="get">
     {{ filter.form.as_p }}
     <input type="submit" />
@@ -27,37 +30,4 @@
         </li>
     {% endfor %}
 </ul>
-<div>
-    <h3>Categories</h3>
-    <ul>
-        <li>
-            <a href="{% url "product:index" %}">All</a>
-        </li>
-        {% for category in categorylist %}
-            <li>
-                <a href="{% url "product:index" %}?product_category={{ category.id }}">{{ category.category_name }}</a>
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-<div>
-    <a href="{% url "product:basket" %}">Basket: {{ basket.count_products }}</a>
-</div>
-<ul>
-    {% for product in products %}
-        <li>
-            <div>
-                <a href="{% url "product:about_product" product.id %}">{{ product.title }}</a>
-            </div>
-            {% if product.discount %}
-                <div style="text-decoration: line-through">{{ product.price }}</div>
-                <div>{{ product.count_price }}</div>
-            {% else %}
-                <div>{{ product.price }}</div>
-            {% endif %}
-            <div>
-                <a href="{% url "product:add_product_to_basket" product.id %}?next={{ request.get_full_path|urlencode }}">+</a>
-            </div>
-        </li>
-    {% endfor %}
-</ul>
+

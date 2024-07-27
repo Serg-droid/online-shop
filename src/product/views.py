@@ -19,15 +19,9 @@ from product.models import Basket, BasketArchive, Product, ProductBasket, Produc
 
 
 def index(request):
-    product_category = request.GET.get("product_category")
-    if (product_category == None):
-        products = Product.objects.all()
-    else:
-        products = Product.objects.filter(category=product_category)
     basket = _get_basket(request)
-    categorylist = ProductCategory.objects.all()
     filter = ProductFilter(request.GET, queryset=Product.objects.all())
-    return render(request, "product/index.html", {"products": products, "basket": basket, "categorylist": categorylist, "filter": filter})
+    return render(request, "product/index.html", {"basket": basket, "filter": filter})
 
 
 def add_product_to_basket(request, product_id):
