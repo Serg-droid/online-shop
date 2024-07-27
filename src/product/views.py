@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from yookassa import Payment
 
+from product.filters import ProductFilter
 from product.forms import ProductReviewForm
 from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductReview, ProductReviewLike
 
@@ -25,7 +26,8 @@ def index(request):
         products = Product.objects.filter(category=product_category)
     basket = _get_basket(request)
     categorylist = ProductCategory.objects.all()
-    return render(request, "product/index.html", {"products": products, "basket": basket, "categorylist": categorylist})
+    filter = ProductFilter(request.GET, queryset=Product.objects.all())
+    return render(request, "product/index.html", {"products": products, "basket": basket, "categorylist": categorylist, "filter": filter})
 
 
 def add_product_to_basket(request, product_id):

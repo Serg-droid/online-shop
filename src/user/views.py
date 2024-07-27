@@ -48,13 +48,13 @@ def edit_profile(request):
         if form.is_valid() and image_formset.is_valid():
             form.save(commit=True)
             image_formset.save()
-            print(image_formset.data)
             return HttpResponseRedirect(reverse("account_profile"))
         else:
             return render(request, "user/edit_profile.html", {"form": form, "image_formset": image_formset})
     elif request.method == "GET":
         form = EditProfileForm(instance=user)
         image_formset = UserImageFormSet(instance=user)
+        print(image_formset[0].instance.image)
         return render(request, "user/edit_profile.html", {"form": form, "image_formset": image_formset})
     else:
         raise "What a hell?"

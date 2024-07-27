@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     'django_cleanup.apps.CleanupConfig',
+    'django_filters',
 
     'product.apps.ProductConfig',
     'user.apps.UserConfig',
