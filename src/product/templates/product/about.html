@@ -1,48 +1,75 @@
-<h2>About product: {{ product.title }}</h2>
-
-<a href="{% url "product:index" %}">Все товары</a>
-
-<div>
-    <div>Описание товара</div>
-    <div>Состав: <br> {{ product.ingredients }} </div>
-    <div>Производитель: <br> {{ product.manufacturer.title }}. {{ product.manufacturer.country }}</div>
-    <div>Бренд: <br> {{ product.brand.brand_name }}</div>
-    <div>
-        <div>Галерея</div>
-        <ul>
-            {% for image in product.productimage_set.all %}
-            <li>
-                <img src="{{ image.image.url }}" alt="cartinka" style="width: 200px; height: 200px">
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div>
-        <div>Отзывы</div>
-        <form action="{{ request.get_full_path|urlencode }}" method="post">
-            {% csrf_token %}
-            {{product_review_form}}
-            <button type="submit">Submit</button>
-        </form>
-        <ul>
-            {% for review in product.reviews.all %}
-            <li>
-                <div style="display: flex;">
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    <h2>About product: {{ product.title }}</h2>
+    <div class="row">
+      <div class="col-8">
+        <div class="w-100">{% include "product/about__image_gallery.html" with product=product %}</div>
+      </div>
+      <div class="col-4">
+        <a href="{% url "product:index" %}">Все товары</a>
+        <div>
+          <div>Описание товара</div>
+          <div>
+            Состав:
+            <br>
+            {{ product.ingredients }}
+          </div>
+          <div>
+            Производитель:
+            <br>
+            {{ product.manufacturer.title }}. {{ product.manufacturer.country }}
+          </div>
+          <div>
+            Бренд:
+            <br>
+            {{ product.brand.brand_name }}
+          </div>
+          <div>
+            <div>Галерея</div>
+            <ul>
+              {% for image in product.productimage_set.all %}
+                <li>
+                  <img src="{{ image.image.url }}"
+                       alt="cartinka"
+                       style="width: 200px;
+                              height: 200px">
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div>
+            <div>Отзывы</div>
+            <form action="{{ request.get_full_path|urlencode }}" method="post">
+              {% csrf_token %}
+              {{ product_review_form }}
+              <button type="submit">Submit</button>
+            </form>
+            <ul>
+              {% for review in product.reviews.all %}
+                <li>
+                  <div style="display: flex;">
                     {% with ""|center:10 as range %}
-                        {% for _ in range %}
-                            {% if forloop.counter <= review.rating %}
-                                <div style="width: 10px; height: 20px; background-color: #000;"></div>
-                            {% else %}
-                                <div style="width: 10px; height: 20px; background-color: #999;"></div>
-                            {% endif %}
-                        {% endfor %}
+                      {% for _ in range %}
+                        {% if forloop.counter <= review.rating %}
+                          <div style="width: 10px; height: 20px; background-color: #000;"></div>
+                        {% else %}
+                          <div style="width: 10px; height: 20px; background-color: #999;"></div>
+                        {% endif %}
+                      {% endfor %}
                     {% endwith %}
-                </div>
-                <div>Автор: {{ review.user }}</div>
-                <p>{{ review.text }}</p>
-                <div><a href="{% url "product:add_like_on_review" review.id %}?next={{ request.get_full_path|urlencode }}">{{ review.likes.count }} likes</a></div>
-            </li>
-            {% endfor %}
-        </ul>
+                  </div>
+                  <div>Автор: {{ review.user }}</div>
+                  <p>{{ review.text }}</p>
+                  <div>
+                    <a href="{% url "product:add_like_on_review" review.id %}?next={{ request.get_full_path|urlencode }}">{{ review.likes.count }} likes</a>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+{% endblock content %}
