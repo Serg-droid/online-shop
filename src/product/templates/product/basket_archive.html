@@ -1,10 +1,21 @@
 {% extends "base.html" %}
 {% load custom_tags %}
 {% block content %}
-    {% for basket in baskets %}
-        {% with basket.data|jsonify as data %}
-            <h2>Basket ID: {{ data.basket_id }}</h2>
-            {% for product in data.products %}<div>{{ product }}</div>{% endfor %}
-        {% endwith %}
-    {% endfor %}
+    <div class="container">
+        {% for basket in baskets %}
+            {% with basket.data|jsonify as data %}
+                <div class="card mb-5 align-items-stretch">
+                    <div class="card-header">
+                        <h2>Заказ №: {{ data.basket_id }}</h2>
+                    </div>
+                    <div class="card-body">
+                        <span>Итого: {{ data.basket_total_count }} ₽</span>
+                        <div class="d-inline-flex w-100" style="overflow-x: scroll;">
+                            {% for product in data.products %}<div class="col-4">{{ product }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
 {% endblock content %}

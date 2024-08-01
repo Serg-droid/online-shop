@@ -9,11 +9,12 @@ from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from rest_framework import serializers
 from yookassa import Payment
 
 from product.filters import ProductFilter
 from product.forms import ProductReviewForm
-from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductReview, ProductReviewLike
+from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductImage, ProductReview, ProductReviewLike
 
 # Create your views here.
 
@@ -66,17 +67,18 @@ def about_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     if request.user:
         try:
-            product_review = ProductReview.objects.get(user=request.user, product=product)
+            product_review = ProductReview.objects.get(
+                user=request.user, product=product)
         except ProductReview.DoesNotExist:
             product_review = ProductReview(product=product, user=request.user)
-
         if request.method == "POST":
-            product_review_form = ProductReviewForm(data=request.POST, instance=product_review)
+            product_review_form = ProductReviewForm(
+                data=request.POST, instance=product_review)
             if product_review_form.is_valid():
                 product_review_form.save()
         else:
             product_review_form = ProductReviewForm(instance=product_review)
-    return render(request, "product/about.html", {"product": product, "product_review_form":product_review_form})
+    return render(request, "product/about.html", {"product": product, "product_review_form": product_review_form})
 
 
 @login_required()
@@ -101,17 +103,53 @@ def approve_basket(request):
 @login_required()
 def payment_success(request, basket_id):
     # return render(request, "product/payment_success.html")
+
+    class ProductImageSerializer(serializers.ModelSerializer):
+        image_url = serializers.ImageField(source="image") 
+
+        class Meta:
+            model = ProductImage
+            fields = ["image_url"]
+
+    class ProductSerializer(serializers.ModelSerializer):
+        images = ProductImageSerializer(source="productimage_set", many=True)
+
+        class Meta:
+            model = Product
+            exclude = []
+
+    class ProductBasketSerializer(serializers.ModelSerializer):
+        product_info = ProductSerializer(source="product")
+
+        class Meta:
+            model = ProductBasket
+            fields = ["product_count", "product_info"]
+
+    class BasketSerializer(serializers.ModelSerializer):
+        basket_id = serializers.ReadOnlyField(source="id")
+        basket_total_count = serializers.ReadOnlyField(
+            source="count_total_price")
+        products = ProductBasketSerializer(
+            source="productbasket_set", many=True)
+
+        class Meta:
+            model = Basket
+            fields = ["basket_id", "basket_total_count", "products"]
+
     basket = _get_basket(request)
     if basket_id != basket.id:
         raise Http404()
     basket_data = {
         "basket_id": basket.pk,
         "basket_total_count": basket.count_total_price(),
-        "products": list(
-            basket.products.all().values().annotate(product_count=F("productbasket__product_count"))
-        )
+        # "products": list(
+        #     basket.products.all().annotate(product_count=F("productbasket__product_count"),
+        #                                    images=F("productbasket__product__productimage__image")).order_by("id").values()
+        # "products": ProductSerializer(basket.products.all(), many=True).data
     }
-    basket_archive = BasketArchive(user=request.user, data=json.dumps(basket_data, cls=DjangoJSONEncoder))
+    basket_data = BasketSerializer(basket).data
+    basket_archive = BasketArchive(
+        user=request.user, data=json.dumps(basket_data, cls=DjangoJSONEncoder))
     basket_archive.save()
     basket.delete()
     return HttpResponseRedirect(reverse("product:purchase_history"))
@@ -121,7 +159,7 @@ def payment_success(request, basket_id):
 @login_required()
 def purchase_history(request):
     all_baskets = request.user.basketarchive_set.all()
-    return render(request, "product/basket_archive.html", { "baskets" : all_baskets })
+    return render(request, "product/basket_archive.html", {"baskets": all_baskets})
 
 
 def _get_basket(request):

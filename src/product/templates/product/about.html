@@ -21,11 +21,15 @@
           </div>
           <div>
             <div class="text-1">Производитель:</div>
-            {{ product.manufacturer.title }}. {{ product.manufacturer.country }}
+            <a href="{% url "product:index" %}?manufacturer={{product.manufacturer.id}}">
+              {{ product.manufacturer.title }}. {{ product.manufacturer.country }}
+            </a>
           </div>
           <div>
             <div class="text-1">Бренд:</div>
-            {{ product.brand.brand_name }}
+            <a href="{% url "product:index"  %}?brand={{product.brand_id}}">
+              {{ product.brand.brand_name }}
+            </a>
           </div>
         </div>
       </div>

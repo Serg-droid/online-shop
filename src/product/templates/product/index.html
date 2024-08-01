@@ -1,33 +1,60 @@
+{% extends "base.html" %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'product/style.css' %}">
-<h1>Product index page</h1>
-<div>
-    <a href="{% url "account_profile" %}">Profile</a>
-    <a href="http://localhost:5173/chats_list">Chat</a>
-</div>
-<div>
-    <a href="{% url "product:basket" %}">Basket: {{ basket.count_products }}</a>
-</div>
-<form method="get">
-    {{ filter.form.as_p }}
-    <input type="submit" />
-</form>
-<ul>
-    {% for product in filter.qs %}
-        <li>
-            <div>
-                <a href="{% url "product:about_product" product.id %}">{{ product.title }}</a>
-            </div>
-            {% if product.discount %}
-                <div style="text-decoration: line-through">{{ product.price }}</div>
-                <div>{{ product.count_price }}</div>
-            {% else %}
-                <div>{{ product.price }}</div>
-            {% endif %}
-            <div>
-                <a href="{% url "product:add_product_to_basket" product.id %}?next={{ request.get_full_path|urlencode }}">+</a>
-            </div>
-        </li>
-    {% endfor %}
-</ul>
-
+{% load custom_tags %}
+{% block content %}
+    <link rel="stylesheet" href="{% static 'product/style.css' %}">
+    <div class="container overflow-hidden">
+        <h1>Product index page</h1>
+        <div>
+            <a href="{% url "account_profile" %}">Profile</a>
+            <a href="http://localhost:5173/chats_list">Chat</a>
+        </div>
+        <div>
+            <a href="{% url "product:basket" %}">Basket: {{ basket.count_products }}</a>
+        </div>
+        <form method="get">
+            {{ filter.form.as_p }}
+            <input type="submit" />
+        </form>
+        <div class="row g-3">
+            {% for product in filter.qs %}
+                <div class="col-3">
+                    <div class="card text-bg-secondary">
+                        {% if product.productimage_set.first %}
+                            <img src="{{ product.productimage_set.first.image.url }}"
+                                 alt=""
+                                 class="card-img-top"
+                                 style="aspect-ratio: 16 / 9;
+                                        object-fit: cover">
+                        {% else %}
+                            <img src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"
+                                 alt=""
+                                 class="card-img-top"
+                                 style="aspect-ratio: 16 / 9;
+                                        object-fit: cover">
+                        {% endif %}
+                        <div class="card-body">
+                            {% if product.discount %}
+                                <div>
+                                    <span class="fw-bold text-warning fs-4">{{ product.count_price }} ₽</span>
+                                    <span class="fw-bold text-decoration-line-through text-white-50">{{ product.price }}</span>
+                                </div>
+                            {% else %}
+                                <div>
+                                    <span class="fw-bold text-warning fs-4">{{ product.price }} ₽</span>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <a class="fs-5" href="{% url "product:about_product" product.id %}">{{ product.title }}</a>
+                            </div>
+                            <div class="mt-2">
+                                <a href="{% url "product:add_product_to_basket" product.id %}?next={{ request.get_full_path|urlencode }}"
+                                   class="btn btn-primary py-3 w-100">Secondary</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock content %}

@@ -1,5 +1,12 @@
-li {
-    display: block;
-    padding: 10px;
-    border: 1px solid #999;
+.card {
+    height: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+    transition: .3s;
+}
+a:hover {
+    text-decoration: underline;
 }

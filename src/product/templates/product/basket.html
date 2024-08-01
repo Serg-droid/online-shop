@@ -1,18 +1,44 @@
+{% extends "base.html" %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'product/style.css' %}">
-<ul>
-    {% for productbasket in productbasketlist %}
-        <li>
-            <div>Title: {{ productbasket.product.title }}</div>
-            <div>Count: {{ productbasket.product_count }}</div>
-            <div>Price: {{ productbasket.product.count_price }}</div>
-            <a href="{% url "product:add_product_to_basket" productbasket.product.id %}?next={{ request.get_full_path|urlencode }}">+</a>
-            <a href="{% url "product:remove_product_from_basket" productbasket.product.id %}?next={{ request.get_full_path|urlencode }}">-</a>
-        </li>
-    {% endfor %}
-    <div>
-        Total <strong>{{ basket_total_count }}</strong>
+{% block content %}
+    <div class="container">
+        <link rel="stylesheet" href="{% static 'product/style.css' %}">
+        <ul style="max-width: 600px;">
+            {% for productbasket in productbasketlist %}
+                <li class="row">
+                    <div class="col-2">
+                        {% if productbasket.product.productimage_set.first %}
+                            <img class="w-100"
+                                 style="aspect-ratio: 16 / 9;
+                                        object-fit: cover"
+                                 src="{{ productbasket.product.productimage_set.first.image.url }}"
+                                 alt="">
+                        {% else %}
+                            <img class="w-100"
+                                 style="aspect-ratio: 16 / 9;
+                                        object-fit: cover"
+                                 src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"
+                                 alt="">
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        <div>Title: {{ productbasket.product.title }}</div>
+                        <div>Price: {{ productbasket.product.count_price }}</div>
+                    </div>
+                    <div class="col-2">
+                        <div class="btn btn-secondary">
+                            <a href="{% url "product:remove_product_from_basket" productbasket.product.id %}?next={{ request.get_full_path|urlencode }}">-</a>
+                            <span>{{ productbasket.product_count }}</span>
+                            <a href="{% url "product:add_product_to_basket" productbasket.product.id %}?next={{ request.get_full_path|urlencode }}">+</a>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+            <div>
+                Total <strong>{{ basket_total_count }}</strong>
+            </div>
+            <a href="{% url "product:index" %}" class="btn btn-secondary">Back to products</a>
+            <a href="{% url "product:approve_basket" %}" class="btn btn-success">Approve basket</a>
+        </ul>
     </div>
-    <a href="{% url "product:index" %}">Back to products</a>
-    <a href="{% url "product:approve_basket" %}">Approve basket</a>
-</ul>
+{% endblock content %}
