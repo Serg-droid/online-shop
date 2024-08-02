@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q, BaseConstraint, ForeignKey, Sum, UniqueConstraint, F
+from django.db.models import Q, BaseConstraint, CheckConstraint, ForeignKey, Sum, UniqueConstraint, F
 from django.core.validators import MinLengthValidator
+from django.test.testcases import CheckCondition
 
 
 # Create your models here.
@@ -101,15 +102,20 @@ class ProductReviewLike(models.Model):
         return f"User: {self.user} liked review: {self.review}"
 
 
+class BasketStatus(models.TextChoices):
+    ACTIVE = "ACTIVE"
+    ARCHIVED = "ARCHIVED"
+
 class ProductBasket(models.Model):
     product_count = models.IntegerField(default=1)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     basket = models.ForeignKey("Basket", on_delete=models.CASCADE)
+    archived_price = models.DecimalField(decimal_places=2, max_digits=12, null=True, blank=True)
 
     class Meta:
         constraints = [
             UniqueConstraint(fields=["basket", "product"],
-                             name="productbasket_constraint")
+                             name="productbasket_constraint"),
         ]
 
     def __str__(self) -> str:
@@ -117,11 +123,8 @@ class ProductBasket(models.Model):
 
 
 
-class Basket(models.Model):
 
-    class BasketStatus(models.TextChoices):
-        ACTIVE = "ACTIVE"
-        ARCHIVED = "ARCHIVED"
+class Basket(models.Model):
 
     class Meta:
         constraints = [
@@ -130,16 +133,23 @@ class Basket(models.Model):
 
     products = models.ManyToManyField(Product, through=ProductBasket)
     owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, null=True, related_name="basket")
+        User, on_delete=models.CASCADE, null=True)
     status = models.CharField(choices=BasketStatus, max_length=50)
 
     def count_total_price(self):
-        price = 0
-        products = self.products.annotate(
-            count_in_basket=F("productbasket__product_count"))
-        for product in products:
-            price += product.count_price() * product.count_in_basket
-        return price
+        if self.status == BasketStatus.ACTIVE:
+            price = 0
+            products = self.products.annotate(
+                count_in_basket=F("productbasket__product_count"))
+            for product in products:
+                price += product.count_price() * product.count_in_basket
+            return price
+        else:
+            price = 0
+            products = self.productbasket_set.all()
+            for product in products:
+                price += product.archived_price * product.product_count
+            return price
     
     def count_products(self):
         result = self.products.annotate(

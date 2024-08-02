@@ -14,7 +14,7 @@ from yookassa import Payment
 
 from product.filters import ProductFilter
 from product.forms import ProductReviewForm
-from product.models import Basket, BasketArchive, Product, ProductBasket, ProductCategory, ProductImage, ProductReview, ProductReviewLike
+from product.models import Basket, BasketArchive, BasketStatus, Product, ProductBasket, ProductCategory, ProductImage, ProductReview, ProductReviewLike
 
 # Create your views here.
 
@@ -151,14 +151,22 @@ def payment_success(request, basket_id):
     basket_archive = BasketArchive(
         user=request.user, data=json.dumps(basket_data, cls=DjangoJSONEncoder))
     basket_archive.save()
-    basket.delete()
+
+
+    basket.status = BasketStatus.ARCHIVED
+    basket_products = basket.productbasket_set.all()
+    for product in basket_products:
+        product.archived_price = product.product.price
+        product.save()
+    basket.save()
+    _get_basket(request)
     return HttpResponseRedirect(reverse("product:purchase_history"))
     # return HttpResponse([   (basket.data)["basket_total_count"] for basket in all_baskets])
 
 
 @login_required()
 def purchase_history(request):
-    all_baskets = request.user.basketarchive_set.all()
+    all_baskets = request.user.basket_set.filter(status=BasketStatus.ARCHIVED)
     return render(request, "product/basket_archive.html", {"baskets": all_baskets})
 
 
@@ -167,7 +175,7 @@ def _get_basket(request):
     if request.user and request.user.is_authenticated:
         # return Basket.objects.get_or_create(owner=request.user, status=Basket.Status.OPEN)[0]
         print("try get basket from authed user")
-        return Basket.objects.get_or_create(owner=request.user)[0]
+        return Basket.objects.get_or_create(owner=request.user, status=BasketStatus.ACTIVE)[0]
     try:
         basket_id = request.session.get("basket_id")
         if (basket_id == None):

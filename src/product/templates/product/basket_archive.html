@@ -2,20 +2,31 @@
 {% load custom_tags %}
 {% block content %}
     <div class="container">
+        <h2>История ваших заказов</h2>
+        <a href="{% url "product:index" %}">Вернуться к каталогу</a>
         {% for basket in baskets %}
-            {% with basket.data|jsonify as data %}
-                <div class="card mb-5 align-items-stretch">
-                    <div class="card-header">
-                        <h2>Заказ №: {{ data.basket_id }}</h2>
-                    </div>
-                    <div class="card-body">
-                        <span>Итого: {{ data.basket_total_count }} ₽</span>
-                        <div class="d-inline-flex w-100" style="overflow-x: scroll;">
-                            {% for product in data.products %}<div class="col-4">{{ product }}</div>{% endfor %}
+            <div class="card mb-5 align-items-stretch">
+                <div class="card-header">
+                    <h2>Заказ №: {{ basket.id }}</h2>
+                </div>
+                <div class="card-body">
+                    <span>Итого: {{ basket.count_total_price }} ₽</span>
+                    <div class="d-inline-flex w-100 py-4" style="overflow-x: scroll; gap: 20px;">
+                        {% for productbasket in basket.productbasket_set.all %}
+                        <div class="col-4">
+                            <div class="card bg-info text-dark">
+                                <img src={{ productbasket.product.productimage_set.first.image.url }} alt="" class="card-img-top h-100" style="aspect-ratio: 16 / 9; object-fit: cover;">
+                                <div class="card-body">
+                                    <a href="{% url "product:about_product" productbasket.product.id %}" class="fw-semibold fs-5">{{ productbasket.product.title }}</a>
+                                    <div>Количество товара: {{ productbasket.product_count }}</div>
+                                    <div>Цена: {{productbasket.archived_price}}</div>
+                                </div>
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
-            {% endwith %}
+            </div>
         {% endfor %}
     </div>
 {% endblock content %}
