@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q, ForeignKey, Sum, UniqueConstraint, F
+from django.db.models import Q, BaseConstraint, ForeignKey, Sum, UniqueConstraint, F
 from django.core.validators import MinLengthValidator
 
 
@@ -116,10 +116,22 @@ class ProductBasket(models.Model):
         return f"Basket: {self.basket.pk}. Product: {self.product.title}"
 
 
+
 class Basket(models.Model):
+
+    class BasketStatus(models.TextChoices):
+        ACTIVE = "ACTIVE"
+        ARCHIVED = "ARCHIVED"
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["owner", "status"], condition=Q(status="ACTIVE"), name="basket_status_active_unique_constraint"),
+        ]
+
     products = models.ManyToManyField(Product, through=ProductBasket)
-    owner = models.OneToOneField(
+    owner = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, related_name="basket")
+    status = models.CharField(choices=BasketStatus, max_length=50)
 
     def count_total_price(self):
         price = 0
@@ -136,7 +148,7 @@ class Basket(models.Model):
         return result.get("count")
 
     def __str__(self):
-        return str(self.pk)
+        return F"{self.owner}: {self.status}"
 
 class BasketArchive(models.Model):
     user = ForeignKey(User, on_delete=models.CASCADE)
