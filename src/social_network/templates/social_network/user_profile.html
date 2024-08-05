@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    <div>{{ user.username }}</div>
+    <form action="{% url "social_network:send_friendship_request" user.id %}"
+          method="post">
+      {% csrf_token %}
+      <button type="submit">Отправить запрос в друзья</button>
+    </form>
+    <a href="{% url "social_network:go_to_chat" user.id %}">Сообщения</a>
+    <div>
+      {% for publication in publications %}
+      <div>
+        <span>Publication</span>
+        <div>{{ publication.text }}</div>
+        <div>
+          {% for image in publication.images.all %}
+            <img src="{{ image.image.url }}" alt="" style="width: 300px; aspect-ratio: 16/9; object-fit: cover;">
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  </div>
+{% endblock content %}

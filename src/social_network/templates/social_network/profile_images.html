@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    <div class="row">
+      {% for image in images %}
+        <div class="col-3">
+          <img src="{{ image.image.url }}"
+               alt=""
+               class="w-100"
+               style="aspect-ratio: 16 / 9;
+                      object-fit: cover">
+          <span>Uploaded at: {{ image.uploaded_at }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    <form action="{% url "social_network:profile_images" %}"
+          method="post"
+          enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" name="images" multiple>
+      <button type="submit">Отправить</button>
+    </form>
+  </div>
+{% endblock content %}

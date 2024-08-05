@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+  <style>
+    option:checked {
+      border: 1px solid red;
+    }
+  </style>
+  <div class="container">
+    <div>
+      {% for notification in request.notifications %}
+        <a href="{% url "social_network:process_notification" notification.id %}">{{ notification.content }}</a>
+      {% endfor %}
+    </div>
+    <div>
+      <a href="{% url "social_network:friends_list" %}">Друзья</a>
+    </div>
+    <div>
+      <a href="{% url "social_network:find_users" %}">Поиск людей</a>
+    </div>
+    <div>{{ user.username }}</div>
+    <div>
+      <a href="{% url "social_network:profile_images" %}">Мои фотографии</a>
+    </div>
+    <form action="{% url "social_network:create_publication" %}" method="post">
+      {% csrf_token %}
+      <textarea name="publication_text" id="1"></textarea>
+      <label for="images">Choose images:</label>
+      <select class="d-flex flex-column" name="images" id="images" multiple>
+        {% for image in images %}
+          <option value="{{ image.id }}"
+                  style="background-image: url({{ image.image.url }});
+                         width: 200px;
+                         height: 100px;
+                         background-size:cover;
+                         margin: 20px 0"></option>
+        {% endfor %}
+      </select>
+      <button type="submit">Опубликовать</button>
+    </form>
+    <div>
+      {% for publication in publications %}
+        <div>
+          <span>Publication</span>
+          <div>{{ publication.text }}</div>
+          <div>
+            {% for image in publication.images.all %}
+              <img src="{{ image.image.url }}" alt="" style="width: 300px; aspect-ratio: 16/9; object-fit: cover;">
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock content %}

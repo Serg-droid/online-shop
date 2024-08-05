@@ -22,7 +22,6 @@ export const ChatPage = observer(() => {
     const [messageText, setMessageText] = useState('')
 
     const [uploadProgress, setUploadProgress] = useState(0);
-
     // FROM mui
     const chat = chats[0]
     const [chatMessages, setChatMessages] = useState(chat.messages)

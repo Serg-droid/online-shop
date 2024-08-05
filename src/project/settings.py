@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'product.apps.ProductConfig',
     'user.apps.UserConfig',
     'chat.apps.ChatConfig',
+    'social_network.apps.SocialNetworkConfig'
 ]
 
 MIDDLEWARE = [

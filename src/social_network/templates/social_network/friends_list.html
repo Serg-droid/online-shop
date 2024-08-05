@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    {% for friend in friends %}
+      <div>{{ friend.friend_2 }}</div>
+    {% endfor %}
+  </div>
+{% endblock content %}

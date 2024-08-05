@@ -51,7 +51,7 @@ const router = createBrowserRouter([
                 element: <ChatsListPage />,
             },
             {
-                path: 'chat/:companion_id',
+                path: 'chat/:companion_id/:token?',
                 element: <ChatPage />,
             },
             {
