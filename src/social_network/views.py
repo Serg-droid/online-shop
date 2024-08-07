@@ -1,8 +1,8 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from rest_framework.authentication import get_user_model
 from rest_framework.authtoken.models import Token
 
@@ -71,14 +71,27 @@ def get_friends_list(request):
 def create_publication(request):
     user = request.user
     text = request.POST.get("publication_text")
+    if len(text.strip()) < 1:
+        return HttpResponseServerError("publication text must be at least 1 character")
     images = request.POST.getlist("images")
     publication = Publication(text=text, profile=user.social_network_profile)
     publication.save()
     publication.images.set(images)
-    notification = Notification(content=f"{user.username} опубликовал новый пост. Спешите увидеть.", url=reverse("social_network:user_profile", args=[user.id]))
+    notification = Notification(content=f"{user.username} опубликовал новый пост. Спешите увидеть.", url=reverse(
+        "social_network:user_profile", args=[user.id]))
     notification.save()
     friends = Friendship.objects.filter(friend_1=user.social_network_profile)
-    notification.to_profile.set(list(friends.values_list("friend_2", flat=True)))
+    notification.to_profile.set(
+        list(friends.values_list("friend_2", flat=True)))
+    return redirect("social_network:my_profile")
+
+
+@login_required()
+@require_GET
+def delete_publication(request, publication_id):
+    pub = get_object_or_404(Publication, pk=publication_id,
+                            profile=request.user.social_network_profile)
+    pub.delete()
     return redirect("social_network:my_profile")
 
 
@@ -97,9 +110,9 @@ def profile_images(request):
     return render(request, "social_network/profile_images.html", {"images": images})
 
 
-
 def process_notification(request, notification_id):
-    notification = get_object_or_404(Notification, pk=notification_id, to_profile=request.user.social_network_profile)
+    notification = get_object_or_404(
+        Notification, pk=notification_id, to_profile=request.user.social_network_profile)
     url = notification.url
     notification.delete()
     return HttpResponseRedirect(url)

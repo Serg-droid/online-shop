@@ -1,10 +1,13 @@
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q, F, CheckConstraint, TextField
+from django.db.models.functions import Length
 from rest_framework.authentication import get_user_model
 from django.core.exceptions import ValidationError
+from rest_framework.fields import MinLengthValidator
 
 # Create your models here.
 
+TextField.register_lookup(Length)
 
 User = get_user_model()
 
@@ -18,8 +21,15 @@ class Profile(models.Model):
 
 class Publication(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="publications")
-    text = models.TextField()
+    text = models.TextField(validators=[
+        MinLengthValidator(1, "the field must contain at least 10 character")
+    ])
     images = models.ManyToManyField("ProfileImage", related_name="publications")
+
+    class Meta:
+        constraints = [
+            CheckConstraint(check=Q(text__length__gte=1), name="text_min_length")
+        ]
     
 
 class FriendshipRequestStatus(models.TextChoices):

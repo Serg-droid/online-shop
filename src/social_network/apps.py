@@ -1,4 +1,6 @@
 from django.apps import AppConfig
+from django.db.models import CharField
+from django.db.models.functions import Length
 
 
 class SocialNetworkConfig(AppConfig):
@@ -8,3 +10,4 @@ class SocialNetworkConfig(AppConfig):
     def ready(self) -> None:
         from . import signals
         return super().ready()
+    

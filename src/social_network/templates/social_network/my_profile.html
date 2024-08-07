@@ -41,6 +41,7 @@
       {% for publication in publications %}
         <div>
           <span>Publication</span>
+          <a href="{% url "social_network:delete_publication" publication.id %}">X</a>
           <div>{{ publication.text }}</div>
           <div>
             {% for image in publication.images.all %}
