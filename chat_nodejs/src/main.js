@@ -6,6 +6,9 @@ import { Server } from 'socket.io'
 
 import axios from 'axios'
 
+import * as wss from "./_web_rtc.js"
+import { init_WebRTC } from "./web_rtc.js"
+
 const httpServer = createServer((request, response) => {
     let body = []
     request
@@ -42,7 +45,11 @@ const httpServer = createServer((request, response) => {
 })
 
 const SocketMap = new Map()
+// connect WS for WebRTC connection establish
+const WSSPORT = 8090;
+wss.init(WSSPORT)
 
+// connect socket io
 const io = new Server(httpServer, {
     cors: {
         origin: JSON.parse(process.env.SOCKET_IO_CORS_ALLOWED_ORIGINS),
@@ -143,6 +150,7 @@ io.on('connection', async socket => {
         SocketMap.set(user_id, new Set([socket]))
     }
     setupHandlers(socket)
+    init_WebRTC(socket)
 })
 
 httpServer.listen(3000, () => {

@@ -15,6 +15,7 @@ import { makeAutoObservable, runInAction } from 'mobx'
 import axios from 'axios'
 import { checkAuth, state, StateContext } from './state.js'
 import { StyledEngineProvider } from '@mui/joy'
+import { WebRTC } from './components/WebRTC/WebRTC.jsx'
 
 async function init() {
     const isAuthed = await checkAuth()
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
                 path: 'app/',
                 element: <App />,
             },
+            {
+                path: "web_rtc/",
+                element: <WebRTC />
+            }
         ],
     },
     {
