@@ -3,6 +3,97 @@ import { createContext } from 'react'
 import axios from 'axios'
 import { io } from 'socket.io-client'
 
+class WebRTCState {
+    pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+    })
+    initialized = false
+    stream = null
+
+    init(socket, roomId, media_stream_target) {
+        if (this.initialized) return
+        this.socket = socket
+        this.roomId = roomId
+        this.media_stream_target = media_stream_target
+        this.socket.on('userJoined', userId => {
+            console.log('Пользователь присоединился', userId)
+        })
+
+        this.socket.on('userLeft', userId => {
+            console.log('Пользователь отключился', userId)
+        })
+
+        this.socket.on('roomCreated', roomId => {
+            console.log('Создана сессия', roomId)
+        })
+        this.socket.on('web_rtc_offer', async offer => {
+            console.log('web_rtc_offer')
+            this.get_offer(offer)
+        })
+        this.socket.on('web_rtc_answer', async answer => {
+            this.get_answer(answer)
+        })
+        this.socket.on('ice_candidate', async candidate => {
+            this.handle_ice_candidate(candidate)
+        })
+        this.setupHandlers()
+
+        this.initialized = true
+    }
+
+    async make_offer() {
+        console.log('make offer, roomID:', this.roomId)
+        const offer = await this.pc.createOffer()
+        await this.pc.setLocalDescription(offer)
+        this.socket.emit('web_rtc_offer', { offer, roomId: this.roomId })
+    }
+
+    async get_offer(offer) {
+        console.log('get offer')
+        await this.pc.setRemoteDescription(new RTCSessionDescription(offer))
+        const answer = await this.pc.createAnswer()
+        await this.pc.setLocalDescription(answer)
+        this.socket.emit('web_rtc_answer', { roomId: this.roomId, answer })
+        console.log('sent answer')
+    }
+
+    async get_answer(answer) {
+        console.log('get answer')
+        await this.pc.setRemoteDescription(new RTCSessionDescription(answer))
+    }
+
+    async handle_ice_candidate(candidate) {
+        console.log('handle ice candidate')
+        await this.pc.addIceCandidate(candidate)
+    }
+
+    setupHandlers() {
+        if (this.initialized) return
+        this.pc.onicecandidate = (event) => {
+            console.log("onicecandidate", event)
+            if (event.candidate) {
+                this.socket.emit("ice_candidate", { roomId: this.roomId, candidate: event.candidate })
+            }
+        }
+        this.pc.onicecandidateerror = (e) => {
+            console.error("onicecandidate error", e)
+        },
+        this.pc.ontrack = (event) => {
+            console.log("ontrack", event.streams)
+            this.media_stream_target.srcObject = event.streams[0]
+        }
+    }
+
+    addStream(stream) {
+        this.stream = stream
+    }
+
+    updateRoomId(roomId) {
+        this.roomId = roomId
+        console.log(this.roomId)
+    }
+}
+
 class SocketState {
     socket = null
 
@@ -188,6 +279,7 @@ export const state = {
     socketState: new SocketState(),
     chatState: new ChatState(),
     authState: new AuthState(),
+    webRTCState: new WebRTCState(),
 }
 
 export const StateContext = createContext({})
