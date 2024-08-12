@@ -3,6 +3,47 @@ import { createContext } from 'react'
 import axios from 'axios'
 import { io } from 'socket.io-client'
 
+
+export class CallStatus {
+    static NO_CALL = "NO_CALL"
+    static CALL_IN_PROCESS = "CALL_IN_PROCESS"
+    static INCOMING_CALL_PENDING = "INCOMING_CALL_PENDING"
+}
+
+class CallState {
+
+    socket = null
+    initialized = false
+    call_status = CallStatus.NO_CALL
+    call_data = null
+
+    constructor() {
+        makeAutoObservable(this)
+    }
+
+    init({ socket }) {
+        if (this.initialized) return
+        this.socket = socket
+        this.socket.on('call', call_data => {
+            this.handle_incoming_call(call_data)
+        })
+        this.initialized = true
+    }
+
+    make_call({ caller_id, callee_id }) {
+        if (this.call_status !== CallStatus.NO_CALL) return
+        console.log("make_call")
+        this.socket.emit("call", { caller_id, callee_id })
+        this.call_status = CallStatus.CALL_IN_PROCESS
+    }
+
+    handle_incoming_call(call_data) {
+        console.log("handle_incoming_call")
+        this.call_data = call_data
+        this.call_status = CallStatus.INCOMING_CALL_PENDING
+    }
+}
+
 class WebRTCState {
     pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
@@ -10,11 +51,12 @@ class WebRTCState {
     initialized = false
     stream = null
 
-    init(socket, roomId, media_stream_target) {
+    init(socket, roomId, localVideo, remoteVideo) {
         if (this.initialized) return
         this.socket = socket
         this.roomId = roomId
-        this.media_stream_target = media_stream_target
+        this.localVideo = localVideo
+        this.remoteVideo = remoteVideo
         this.socket.on('userJoined', userId => {
             console.log('Пользователь присоединился', userId)
         })
@@ -51,6 +93,18 @@ class WebRTCState {
     async get_offer(offer) {
         console.log('get offer')
         await this.pc.setRemoteDescription(new RTCSessionDescription(offer))
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                audio: true,
+                video: true,
+            })
+            this.localVideo.srcObject = stream
+            stream.getTracks().forEach(track => {
+                this.pc.addTrack(track, stream)
+            })
+        } catch (e) {
+            console.error(`Ошибка инициализации WebRTC: ${e}`)
+        }
         const answer = await this.pc.createAnswer()
         await this.pc.setLocalDescription(answer)
         this.socket.emit('web_rtc_answer', { roomId: this.roomId, answer })
@@ -64,24 +118,28 @@ class WebRTCState {
 
     async handle_ice_candidate(candidate) {
         console.log('handle ice candidate')
+        console.log(this.pc.remoteDescription)
         await this.pc.addIceCandidate(candidate)
     }
 
     setupHandlers() {
         if (this.initialized) return
-        this.pc.onicecandidate = (event) => {
-            console.log("onicecandidate", event)
+        this.pc.onicecandidate = event => {
+            console.log('onicecandidate', event)
             if (event.candidate) {
-                this.socket.emit("ice_candidate", { roomId: this.roomId, candidate: event.candidate })
+                this.socket.emit('ice_candidate', {
+                    roomId: this.roomId,
+                    candidate: event.candidate,
+                })
             }
         }
-        this.pc.onicecandidateerror = (e) => {
-            console.error("onicecandidate error", e)
-        },
-        this.pc.ontrack = (event) => {
-            console.log("ontrack", event.streams)
-            this.media_stream_target.srcObject = event.streams[0]
-        }
+        ;(this.pc.onicecandidateerror = e => {
+            console.error('onicecandidate error', e)
+        }),
+            (this.pc.ontrack = event => {
+                console.log('ontrack', event.streams)
+                this.remoteVideo.srcObject = event.streams[0]
+            })
     }
 
     addStream(stream) {
@@ -280,6 +338,7 @@ export const state = {
     chatState: new ChatState(),
     authState: new AuthState(),
     webRTCState: new WebRTCState(),
+    callState: new CallState(),
 }
 
 export const StateContext = createContext({})

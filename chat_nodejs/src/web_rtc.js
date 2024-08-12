@@ -11,11 +11,6 @@ export function init_WebRTC(socket) {
         socket.to(roomId).emit("userJoined", socket.id)
     })
 
-    // socket.on("signal", data => {
-    //     console.log("signal", data.signal)
-    //     socket.to(data.roomId).emit("signal", data.signal)
-    // })
-
     socket.on("web_rtc_offer", data => {
         console.log("web_rtc_offer")
         socket.to(data.roomId).emit("web_rtc_offer", data.offer)

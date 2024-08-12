@@ -14,7 +14,7 @@ export function WebRTC() {
     }
 
     useEffect(() => {
-        webRTCState.init(socketState.socket, roomId, remoteVideo.current)
+        webRTCState.init(socketState.socket, roomId, localVideo.current, remoteVideo.current)
     }, [])
 
     const initWebRTC = async () => {

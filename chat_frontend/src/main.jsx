@@ -16,6 +16,7 @@ import axios from 'axios'
 import { checkAuth, state, StateContext } from './state.js'
 import { StyledEngineProvider } from '@mui/joy'
 import { WebRTC } from './components/WebRTC/WebRTC.jsx'
+import { Call } from './components/Call/Call.jsx'
 
 async function init() {
     const isAuthed = await checkAuth()
@@ -23,6 +24,8 @@ async function init() {
     const { token, user_id } = state.authState
     state.socketState.connectSocket(token, user_id)
     state.socketState.setupHandlers(state)
+
+    state.callState.init({ socket: state.socketState.socket })
     try {
     } catch (e) {
         console.error(e)
@@ -62,6 +65,10 @@ const router = createBrowserRouter([
             {
                 path: "web_rtc/",
                 element: <WebRTC />
+            },
+            {
+                path: "call/:user_id/",
+                element: <Call/>
             }
         ],
     },

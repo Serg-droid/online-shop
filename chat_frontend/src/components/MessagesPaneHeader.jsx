@@ -5,10 +5,19 @@ import {
     PhoneInTalkRounded as PhoneInTalkRoundedIcon,
     MoreVertRounded as MoreVertRoundedIcon,
 } from '@mui/icons-material'
+import { StateContext } from '../state'
+import { useContext } from 'react'
 
 export const MessagesPaneHeader = props => {
     const { sender } = props
     console.log(sender.profile)
+
+    const { callState, authState } = useContext(StateContext)
+
+    function makeCall() {
+        callState.make_call({ caller_id: authState.user_id, callee_id: ""+sender.id })
+    }
+
     return (
         <Stack
             direction='row'
@@ -85,6 +94,7 @@ export const MessagesPaneHeader = props => {
                     sx={{
                         display: { xs: 'none', md: 'inline-flex' },
                     }}
+                    onClick={makeCall}
                 >
                     Call
                 </Button>

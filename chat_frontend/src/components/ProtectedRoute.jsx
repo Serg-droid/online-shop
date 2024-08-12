@@ -26,7 +26,6 @@ export function AuthProtectedRoute({ children }) {
     }, [state])
 
     useEffect(() => {
-        console.log(urlParams)
         if (urlParams.token) {
             localStorage.setItem("token", urlParams.token);
         }

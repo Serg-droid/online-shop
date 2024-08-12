@@ -8,6 +8,9 @@ import axios from 'axios'
 
 import * as wss from "./_web_rtc.js"
 import { init_WebRTC } from "./web_rtc.js"
+import { init_call } from "./call.js"
+
+const SocketMap = new Map()
 
 const httpServer = createServer((request, response) => {
     let body = []
@@ -44,7 +47,6 @@ const httpServer = createServer((request, response) => {
         })
 })
 
-const SocketMap = new Map()
 // connect WS for WebRTC connection establish
 const WSSPORT = 8090;
 wss.init(WSSPORT)
@@ -151,6 +153,7 @@ io.on('connection', async socket => {
     }
     setupHandlers(socket)
     init_WebRTC(socket)
+    init_call(socket, SocketMap)
 })
 
 httpServer.listen(3000, () => {
