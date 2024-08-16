@@ -93,3 +93,13 @@ class Notification(models.Model):
     url = models.URLField(max_length=200)
 
 
+class CommunityMember(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    community = models.ForeignKey("Community", on_delete=models.CASCADE)
+
+
+class Community(models.Model):
+    title = models.CharField(max_length=200)
+    members = models.ManyToManyField(Profile, through=CommunityMember)
+
+

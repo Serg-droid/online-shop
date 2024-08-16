@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "corsheaders",
     'django_cleanup.apps.CleanupConfig',
     'django_filters',
+    "django_extensions",
 
     'product.apps.ProductConfig',
     'user.apps.UserConfig',
@@ -148,9 +149,21 @@ MEDIA_URL = "media/"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://localhost:5173",
+    "http://192.168.1.147:5173",
     # "http://192.168.1.147:5173",
 ]
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']
+CORS_ALLOWED_HEADERS = (
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "origin",
+)
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173',
+                        'https://localhost:5173', "http://192.168.1.147:5173",]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
