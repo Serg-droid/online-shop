@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models import Q, F, CheckConstraint, TextField
 from django.db.models.functions import Length
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.authentication import get_user_model
 from django.core.exceptions import ValidationError
 from rest_framework.fields import MinLengthValidator
@@ -93,13 +95,47 @@ class Notification(models.Model):
     url = models.URLField(max_length=200)
 
 
+
+
+class CommunityMemberStatus(models.TextChoices):
+    OWNER = "OWNER"
+    ADMIN = "ADMIN"
+    READER = "READER"
+    WRITER = "WRITER"
+
+
 class CommunityMember(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     community = models.ForeignKey("Community", on_delete=models.CASCADE)
+    status = models.CharField(choices=CommunityMemberStatus, max_length=50, default=CommunityMemberStatus.WRITER)
+    ban_until = models.DateTimeField(null=True, blank=True)
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["community", "profile"], name="communitymember_unique_constraint"),
+            models.UniqueConstraint(fields=["community"], condition=Q(status=CommunityMemberStatus.OWNER), name="communitymember_owner_unique_constraint"),
+        ]
+
+    def save(self):
+        if (self.ban_until and self.ban_until <= timezone.now()):
+            raise ValidationError("ban_until must be greater than timezone.now()")
+        return super().save()
+
 
 
 class Community(models.Model):
     title = models.CharField(max_length=200)
     members = models.ManyToManyField(Profile, through=CommunityMember)
+
+    def create_community(title, members, owner):
+        community = Community(title=title)
+        community.save()
+        for m in members:
+            user = get_object_or_404(Profile, pk=m)
+            community_member = CommunityMember(profile=user, community=community)
+            if (owner.social_network_profile == community_member.profile):
+                community_member.status = CommunityMemberStatus.OWNER
+            community_member.save()
 
 

@@ -15,4 +15,6 @@ urlpatterns = [
     path("profile_images/", view=views.profile_images, name="profile_images"),
     path("process_notification/<int:notification_id>/", view=views.process_notification, name="process_notification"),
     path("go_to_chat/<int:user_id>/", view=views.go_to_chat, name="go_to_chat"),
+    path("communities/", view=views.get_communities, name="get_communities"),
+    path("communities/create/", view=views.create_community, name="create_community"),
 ]

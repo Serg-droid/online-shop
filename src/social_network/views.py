@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.forms import inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -7,7 +8,8 @@ from rest_framework.authentication import get_user_model
 from rest_framework.authtoken.models import Token
 
 from social_network.decorators import use_notifications
-from social_network.models import Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, ProfileImage, Publication
+from social_network.forms import CommunityForm
+from social_network.models import Community, CommunityMember, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, ProfileImage, Publication
 
 User = get_user_model()
 
@@ -122,3 +124,36 @@ def process_notification(request, notification_id):
 def go_to_chat(request, user_id):
     token = Token.objects.get_or_create(user=request.user)
     return HttpResponseRedirect(f"http://localhost:5173/chat/{user_id}/{token[0]}")
+
+@login_required()
+def get_communities(request):
+    user = request.user
+    communities = Community.objects.filter(members=user.social_network_profile)
+    return render(request, "social_network/get_communities.html", { "communities" : communities })
+
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def create_community(request):
+    # if (request.method == "GET"):
+    #     form = CommunityForm()
+    #     return render(request, "social_network/create_community.html", {"form": form})
+    # form = CommunityForm(request.POST)
+    # if (form.is_valid()):
+    #     form.save()
+    # return render(request, "social_network/create_community.html", {"form": form})
+    CommunityMembersInlineFormSet = inlineformset_factory(Community, CommunityMember, fields=["status", "ban_until", "profile"])
+    if (request.method == "GET"):
+        form = CommunityForm()
+        formset = CommunityMembersInlineFormSet()
+        return render(request, "social_network/create_community.html", {"form": form, "formset": formset})
+    form = CommunityForm(request.POST)
+    formset = CommunityMembersInlineFormSet()
+    if (form.is_valid()):
+        community = form.save(commit=False)
+        formset = CommunityMembersInlineFormSet(request.POST, instance=community)
+        if (formset.is_valid()):
+            community.save()
+            formset.save()
+    return render(request, "social_network/create_community.html", {"form": form, "formset": formset})

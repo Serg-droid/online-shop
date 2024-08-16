@@ -19,11 +19,13 @@ export function LoginPage() {
         {
           username: login,
           password: password,
-        }
+        },
       );
+      alert(res)
       localStorage.setItem("token", res.data.token);
       navigate("/chats_list/");
     } catch (e) {
+      alert(JSON.stringify(e))
       throw e;
     }
   };
