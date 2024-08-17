@@ -128,14 +128,19 @@ class Community(models.Model):
     title = models.CharField(max_length=200)
     members = models.ManyToManyField(Profile, through=CommunityMember)
 
-    def create_community(title, members, owner):
-        community = Community(title=title)
-        community.save()
-        for m in members:
-            user = get_object_or_404(Profile, pk=m)
-            community_member = CommunityMember(profile=user, community=community)
-            if (owner.social_network_profile == community_member.profile):
-                community_member.status = CommunityMemberStatus.OWNER
-            community_member.save()
+    # def create_community(title, members, owner):
+    #     community = Community(title=title)
+    #     community.save()
+    #     for m in members:
+    #         user = get_object_or_404(Profile, pk=m)
+    #         community_member = CommunityMember(profile=user, community=community)
+    #         if (owner.social_network_profile == community_member.profile):
+    #             community_member.status = CommunityMemberStatus.OWNER
+    #         community_member.save()
+
+
+    def add_owner(self, user):
+        community_member = CommunityMember(profile=user.social_network_profile, status=CommunityMemberStatus.OWNER, community=self)
+        community_member.save()
 
 

@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 
 from social_network.decorators import use_notifications
 from social_network.forms import CommunityForm
-from social_network.models import Community, CommunityMember, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, ProfileImage, Publication
+from social_network.models import Community, CommunityMember, CommunityMemberStatus, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, Profile, ProfileImage, Publication
 
 User = get_user_model()
 
@@ -136,24 +136,24 @@ def get_communities(request):
 @login_required()
 @require_http_methods(["GET", "POST"])
 def create_community(request):
-    # if (request.method == "GET"):
-    #     form = CommunityForm()
-    #     return render(request, "social_network/create_community.html", {"form": form})
-    # form = CommunityForm(request.POST)
-    # if (form.is_valid()):
-    #     form.save()
-    # return render(request, "social_network/create_community.html", {"form": form})
     CommunityMembersInlineFormSet = inlineformset_factory(Community, CommunityMember, fields=["status", "ban_until", "profile"])
     if (request.method == "GET"):
         form = CommunityForm()
         formset = CommunityMembersInlineFormSet()
+        for _form in formset:
+            _form.fields["profile"].queryset = Profile.objects.exclude(user=request.user)
+            _form.fields["status"].choices = [(CommunityMemberStatus.ADMIN, "Admin"), (CommunityMemberStatus.WRITER, "Writer"), (CommunityMemberStatus.READER, "Reader")]
         return render(request, "social_network/create_community.html", {"form": form, "formset": formset})
     form = CommunityForm(request.POST)
-    formset = CommunityMembersInlineFormSet()
+    formset = CommunityMembersInlineFormSet(request.POST)
     if (form.is_valid()):
         community = form.save(commit=False)
         formset = CommunityMembersInlineFormSet(request.POST, instance=community)
         if (formset.is_valid()):
             community.save()
+            community.add_owner(request.user)
             formset.save()
+    for _form in formset:
+        _form.fields["profile"].queryset = Profile.objects.exclude(user=request.user)
+        _form.fields["status"].choices = [(CommunityMemberStatus.ADMIN, "Admin"), (CommunityMemberStatus.WRITER, "Writer"), (CommunityMemberStatus.READER, "Reader")]
     return render(request, "social_network/create_community.html", {"form": form, "formset": formset})
