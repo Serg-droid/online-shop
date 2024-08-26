@@ -117,10 +117,11 @@ class CommunityMember(models.Model):
             models.UniqueConstraint(fields=["community"], condition=Q(status=CommunityMemberStatus.OWNER), name="communitymember_owner_unique_constraint"),
         ]
 
-    def save(self):
+    def save(self, *args, **kwargs):
+        print("save community member")
         if (self.ban_until and self.ban_until <= timezone.now()):
             raise ValidationError("ban_until must be greater than timezone.now()")
-        return super().save()
+        return super().save(*args, **kwargs)
 
 
 
@@ -128,7 +129,7 @@ class Community(models.Model):
     title = models.CharField(max_length=200)
     members = models.ManyToManyField(Profile, through=CommunityMember)
 
-    def create_community(title, members, owner):
+    def create_community(title, owner):
         community = Community(title=title)
         community.save()
         for m in members:

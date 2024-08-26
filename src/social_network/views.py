@@ -9,7 +9,8 @@ from rest_framework.authtoken.models import Token
 
 from social_network.decorators import use_notifications
 from social_network.forms import CommunityForm
-from social_network.models import Community, CommunityMember, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, ProfileImage, Publication
+from social_network.models import Community, CommunityMember, CommunityMemberStatus, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, ProfileImage, Publication
+from user.models import Profile
 
 User = get_user_model()
 
@@ -151,9 +152,9 @@ def create_community(request):
     form = CommunityForm(request.POST)
     formset = CommunityMembersInlineFormSet()
     if (form.is_valid()):
-        community = form.save(commit=False)
+        community = form.save()
+        CommunityMember.objects.create(profile=request.user.social_network_profile, status=CommunityMemberStatus.OWNER, community=community)
         formset = CommunityMembersInlineFormSet(request.POST, instance=community)
         if (formset.is_valid()):
-            community.save()
             formset.save()
     return render(request, "social_network/create_community.html", {"form": form, "formset": formset})
