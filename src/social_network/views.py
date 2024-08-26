@@ -1,5 +1,8 @@
+from re import X
 from django.contrib.auth.decorators import login_required
-from django.forms import inlineformset_factory
+from django.core.files.base import File
+from django.db.models import Q, Model
+from django.forms import BaseInlineFormSet, ModelForm, forms, inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -8,8 +11,8 @@ from rest_framework.authentication import get_user_model
 from rest_framework.authtoken.models import Token
 
 from social_network.decorators import use_notifications
-from social_network.forms import CommunityForm
-from social_network.models import Community, CommunityMember, CommunityMemberStatus, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, Profile, ProfileImage, Publication
+from social_network.forms import CommunityForm, CommunityPublicationForm
+from social_network.models import Community, CommunityMember, CommunityMemberStatus, CommunityPublication, Friendship, FriendshipRequest, FriendshipRequestStatus, Notification, Profile, ProfileImage, Publication
 
 User = get_user_model()
 
@@ -153,7 +156,75 @@ def create_community(request):
             community.save()
             community.add_owner(request.user)
             formset.save()
+            return redirect("social_network:create_community")
     for _form in formset:
         _form.fields["profile"].queryset = Profile.objects.exclude(user=request.user)
         _form.fields["status"].choices = [(CommunityMemberStatus.ADMIN, "Admin"), (CommunityMemberStatus.WRITER, "Writer"), (CommunityMemberStatus.READER, "Reader")]
     return render(request, "social_network/create_community.html", {"form": form, "formset": formset})
+
+
+@login_required()
+def get_community(request, community_id):
+    community = get_object_or_404(Community, pk=community_id, members=request.user.social_network_profile)
+    publications = CommunityPublication.objects.filter(community=community).order_by("publicated_at")
+    form = CommunityPublicationForm()
+    return render(request, "social_network/get_community.html", { "community" : community, "publications" : publications, "form": form })
+
+
+@login_required()
+@require_POST
+def create_community_publication(request):
+    community_id = request.GET.get("community_id")
+    community = Community.objects.get(pk=community_id, members=request.user.social_network_profile)
+    community_publication_form = CommunityPublicationForm(request.POST)
+    if (community_publication_form.is_valid()):
+        community_publication = community_publication_form.save(commit=False)
+        community_publication.community = community
+        community_publication.profile=request.user.social_network_profile
+        community_publication.save()
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    # !todo
+
+
+@login_required()
+@require_http_methods(["GET", "POST"])
+def community_settings(request, community_id):
+    queryset = Q(status=CommunityMemberStatus.OWNER) | Q(status=CommunityMemberStatus.ADMIN)
+    community_member = get_object_or_404(CommunityMember, queryset, community=community_id, profile=request.user.social_network_profile)
+    community = community_member.community
+
+    CommunityMembersInlineFormSet = inlineformset_factory(parent_model=Community, model=CommunityMember, fields=["status", "ban_until", "profile"])
+    if (request.method == "GET"):
+        form = CommunityForm(instance=community)
+        if (community_member.status == CommunityMemberStatus.OWNER):
+            formset = CommunityMembersInlineFormSet(instance=community, queryset=CommunityMember.objects.exclude(status=CommunityMemberStatus.OWNER))
+            excluded_status_choices = [CommunityMemberStatus.OWNER]
+            for _form in formset:
+                _form.fields["status"].choices = [x for x in _form.fields["status"].choices if x[0] not in excluded_status_choices]
+            return render(request, "social_network/community_settings.html", { "form" : form, "formset": formset })
+        formset = CommunityMembersInlineFormSet(instance=community, queryset=CommunityMember.objects.exclude(Q(status=CommunityMemberStatus.OWNER) | Q(status=CommunityMemberStatus.ADMIN)))
+        excluded_status_choices = [CommunityMemberStatus.OWNER, CommunityMemberStatus.ADMIN]
+        form.fields["title"].disabled = True
+        for _form in formset:
+            _form.fields["status"].choices = [x for x in _form.fields["status"].choices if x[0] not in excluded_status_choices]
+        return render(request, "social_network/community_settings.html", { "formset" : formset, "form" : form })
+    if (request.method == "POST"):
+        if (community_member.status == CommunityMemberStatus.OWNER):
+            form = CommunityForm(request.POST, instance=community)
+            formset = CommunityMembersInlineFormSet(request.POST, instance=community, queryset=CommunityMember.objects.exclude(status=CommunityMemberStatus.OWNER))
+            excluded_status_choices = [CommunityMemberStatus.OWNER]
+            for _form in formset:
+                _form.fields["status"].choices = [x for x in _form.fields["status"].choices if x[0] not in excluded_status_choices]
+            if form.is_valid() and formset.is_valid():
+                form.save()
+                formset.save()
+            print(form.errors, formset.errors)
+            return render(request, "social_network/community_settings.html", { "form" : form, "formset": formset })
+        excluded_status_choices = [CommunityMemberStatus.OWNER, CommunityMemberStatus.ADMIN]
+        for form in formset:
+            form.fields["status"].choices = [x for x in form.fields["status"].choices if x[0] not in excluded_status_choices]
+        formset = CommunityMembersInlineFormSet(instance=community, queryset=CommunityMember.objects.exclude(Q(status=CommunityMemberStatus.OWNER) | Q(status=CommunityMemberStatus.ADMIN)))
+        return render(request, "social_network/community_settings.html", { "formset" : formset })
+    
+
+        

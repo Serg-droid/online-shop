@@ -3,7 +3,9 @@
   <div class="container">
     {% for community in communities %}
       <div>
-        <span>{{ community.title }}</span>
+        <a href="{% url "social_network:get_community" community.id %}">
+            <span>{{ community.title }}</span>
+        </a>
       </div>
     {% endfor %}
   </div>

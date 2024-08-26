@@ -17,4 +17,7 @@ urlpatterns = [
     path("go_to_chat/<int:user_id>/", view=views.go_to_chat, name="go_to_chat"),
     path("communities/", view=views.get_communities, name="get_communities"),
     path("communities/create/", view=views.create_community, name="create_community"),
+    path("communities/<int:community_id>/", view=views.get_community, name="get_community"),
+    path("communities/publication/add", view=views.create_community_publication, name="add_community_publication"),
+    path("communities/<int:community_id>/settings/", view=views.community_settings, name="community_settings"),
 ]

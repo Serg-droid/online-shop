@@ -123,7 +123,6 @@ class CommunityMember(models.Model):
         return super().save()
 
 
-
 class Community(models.Model):
     title = models.CharField(max_length=200)
     members = models.ManyToManyField(Profile, through=CommunityMember)
@@ -138,9 +137,20 @@ class Community(models.Model):
     #             community_member.status = CommunityMemberStatus.OWNER
     #         community_member.save()
 
+    def __str__(self) -> str:
+        return self.title
+
 
     def add_owner(self, user):
         community_member = CommunityMember(profile=user.social_network_profile, status=CommunityMemberStatus.OWNER, community=self)
         community_member.save()
+
+
+class CommunityPublication(models.Model):
+    community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    text = models.TextField(max_length=2000)
+    publicated_at = models.DateTimeField(auto_now_add=True)
+
 
 

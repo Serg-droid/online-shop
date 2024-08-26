@@ -1,4 +1,4 @@
-from .models import Community, CommunityMember, FriendshipRequest, Notification, Profile, ProfileImage, Publication
+from .models import Community, CommunityMember, CommunityPublication, FriendshipRequest, Notification, Profile, ProfileImage, Publication
 from django.contrib import admin
 
 from social_network.models import Friendship
@@ -26,4 +26,5 @@ admin.site.register(FriendshipRequest)
 admin.site.register(ProfileImage)
 admin.site.register(Publication)
 admin.site.register(Notification)
+admin.site.register(CommunityPublication)
 

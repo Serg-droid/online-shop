@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <div>
+            Community: {{community.id}}
+        </div>
+        <div><a href="{% url "social_network:community_settings" community.id %}">Настройки</a></div>
+        <div>
+            {% for pub in publications %}
+                <div style="border: 1px solid gray; margin-bottom: 10px;">
+                    <p>{{pub.text}}</p>
+                    <span>{{pub.publicated_at|date:"l. j F o. G:i"}}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <div>
+            <form action="{% url "social_network:add_community_publication" %}?community_id={{community.id}}" method="post">
+                {% csrf_token %}
+                {{ form }}
+                <button type="Submit">Отправить</button>
+            </form>
+        </div>
+    </div>
+{% endblock content %}
